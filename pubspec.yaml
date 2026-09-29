@@ -1,0 +1,81 @@
+name: digital_campus
+description: "Digital Campus - Unified Smart Campus Platform for Digital Governance, Education ERP & AI Automation"
+publish_to: 'none'
+
+version: 1.0.0+2
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Firebase Integration
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.3
+
+  # Navigation
+  go_router: ^14.3.0
+
+  # State Management
+  provider: ^6.1.2
+
+  # File handling
+  file_picker: ^8.1.2
+  image_picker: ^1.1.2
+
+  # PDF generation
+  pdf: ^3.11.1
+  printing: ^5.13.1
+
+  # Notifications
+  flutter_local_notifications: ^17.2.3
+
+  # UI
+  google_fonts: ^6.2.1
+  percent_indicator: ^4.2.4
+  fl_chart: ^0.68.0
+  lottie: ^3.1.2
+  shimmer: ^3.0.0
+  cached_network_image: ^3.4.1
+
+  # Utilities
+  intl: ^0.19.0
+  url_launcher: ^6.3.1
+  shared_preferences: ^2.3.2
+  uuid: ^4.5.1
+  path_provider: ^2.1.4
+  open_file: ^3.5.8
+  http: ^1.2.2
+  crypto: ^3.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/lottie/
+    - assets/logo.webp
+    - shorebird.yaml
+
+  # fonts:
+  #   - family: Poppins
+  #     fonts:
+  #       - asset: assets/fonts/Poppins-Regular.ttf
+  #       - asset: assets/fonts/Poppins-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Poppins-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Poppins-Bold.ttf
+  #         weight: 700
+

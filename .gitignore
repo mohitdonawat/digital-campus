@@ -1,0 +1,84 @@
+# ── Flutter / Dart / Pub ──────────────────────────────────────────────
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+/coverage/
+
+# ── Build Artifacts & Binaries (NO APK / NO AAB) ───────────────────────
+build/
+**/build/
+android/app/build/
+android/.gradle/
+.gradle/
+*.apk
+*.aab
+*.appbundle
+*.symbols
+*.map.json
+*.so
+*.dll
+*.dylib
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ── Firebase & Sensitive Files (STRICTLY EXCLUDED) ────────────────────
+*firebase*
+*.firebaserc
+firebase.json
+firestore.rules
+storage.rules
+*google-services.json
+**/google-services.json
+lib/firebase_options.dart
+key.properties
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.env
+*.env.*
+
+# ── Shorebird & OTA ───────────────────────────────────────────────────
+.shorebird/
+shorebird.yaml
+**/shorebird/
+
+# ── Local SQLite Databases & Python/Go Caches ────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+**/__pycache__/
+*.pyc
+.gocache/
+**/.gocache/
+backend/go_node_engine/.gocache/
+
+# ── IDEs & Editors ────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# ── OS & Miscellaneous ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.class
+*.log
+*.swp
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/

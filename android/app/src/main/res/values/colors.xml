@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- FCM notification bar color — ICOT Blue -->
+    <color name="notification_color">#1A3C6E</color>
+    <!-- App accent color — ICOT Orange -->
+    <color name="accent_color">#F5A623</color>
+    <!-- Splash background -->
+    <color name="splash_bg">#0D1B2A</color>
+</resources>

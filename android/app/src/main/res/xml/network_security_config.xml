@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Network Security Config for Digital Campus -->
+<!-- Allows HTTPS traffic to Firebase + Campus servers -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    <!-- Allow Firebase domains -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">firebaseapp.com</domain>
+        <domain includeSubdomains="true">firebase.google.com</domain>
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">firebasestorage.app</domain>
+        <domain includeSubdomains="true">icot.co.in</domain>
+        <domain includeSubdomains="true">iesbpl.ac.in</domain>
+    </domain-config>
+</network-security-config>
