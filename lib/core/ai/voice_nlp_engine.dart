@@ -102,7 +102,7 @@ class VoiceNlpEngine {
       answer = "AICTE 75% Statutory Attendance Calculator:\n\n"
           "Aapke paas safe subjects me total $totalSafeBunks safe bunks available hain.\n\n"
           "${safeDetails.join('\n')}\n\n"
-          "${dangerDetails.isNotEmpty ? '⚠ Savdhan (Risk Zone):\n' + dangerDetails.join('\n') : 'Sabhi individual subjects safe zone me hain.'}";
+          "${dangerDetails.isNotEmpty ? '⚠ Savdhan (Risk Zone):\n${dangerDetails.join('\n')}' : 'Sabhi individual subjects safe zone me hain.'}";
       actions = ["View Subject Radar", "Predict GPA Impact", "Verify Geofence Check-in"];
     }
 
@@ -123,9 +123,9 @@ class VoiceNlpEngine {
       }
 
       double overall = totalCls > 0 ? (totalAtt / totalCls) * 100 : 0.0;
-      answer = "Aapki real-time cumulative attendance ${overall.toStringAsFixed(1)}% hai (${totalAtt}/${totalCls} classes).\n\n"
+      answer = "Aapki real-time cumulative attendance ${overall.toStringAsFixed(1)}% hai ($totalAtt/$totalCls classes).\n\n"
           "${overall >= 75.0 ? '• Status: Compliant & Safe (AICTE 75% examination eligibility met).' : '• Status: Warning! Semester examination detention threshold se niche.'}\n\n"
-          "${weakSubs.isNotEmpty ? '• Immediate recovery needed:\n  - ' + weakSubs.join('\n  - ') : '• Sabhi 5 subjects 75% ke upar safe hain.'}";
+          "${weakSubs.isNotEmpty ? '• Immediate recovery needed:\n  - ${weakSubs.join('\n  - ')}' : '• Sabhi 5 subjects 75% ke upar safe hain.'}";
       actions = ["View Subject Radar", "Verify Geofence Check-in", "Predict GPA Impact"];
     }
 

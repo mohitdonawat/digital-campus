@@ -415,8 +415,15 @@ class ApiService {
         lowerConfidenceBound: 8.30,
         upperConfidenceBound: 8.80,
         trajectory: "Consistent High Performer",
-        confidenceLevel: "95%",
-        modelRSquared: 0.91,
+        subjectRiskScores: {
+          "Compiler Design": 70.0,
+          "Machine Learning": 88.0,
+          "Computer Networks": 85.0,
+        },
+        highLeverageActions: [
+          "Focus on Compiler Design parsing modules",
+          "Maintain lab attendance above 85%",
+        ],
       ),
       dropoutRisk: const DropoutRiskAnalysis(
         riskScore: 6.8,
