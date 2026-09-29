@@ -1,7 +1,7 @@
 // ╔══════════════════════════════════════════════════════════════════╗
 // ║  DIGITAL CAMPUS — Education SaaS Platform                       ║
 // ║  Like Accsoft/ERP for every college: Govt & Private             ║
-// ║  Client institution is configured below (demo: IES COT)        ║
+// ║  Client institution is configured below (demo: Apex Institute)   ║
 // ╚══════════════════════════════════════════════════════════════════╝
 class AppConstants {
   // ── Product / Brand ────────────────────────────────────────────────
@@ -19,7 +19,7 @@ class AppConstants {
   static const String institutionShort = "Apex Tech";
   static const String affiliation      = "AICTE Approved • Autonomous University • Estd. 1999";
   static const String accreditation    = "NAAC Grade A++ Accredited • Tier-1 Institution";
-  static const String logoPath         = "assets/images/college_logo.png";
+  static const String logoPath         = "assets/logo.webp";
 
   // ── Statutory / Compliance ─────────────────────────────────────────
   static const double minimumAttendancePercentage   = 75.0;

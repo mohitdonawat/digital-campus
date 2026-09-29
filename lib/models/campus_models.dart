@@ -486,7 +486,7 @@ class LearningRecommendation {
 class CollegeTenant {
   final String id;
   final String name;
-  final String code; // e.g. "IES-0103"
+  final String code; // e.g. "APEX-0103"
   final String city;
   final String state;
   final String affiliation; // "Autonomous RGPV", "AICTE Tier-1", "State Govt"

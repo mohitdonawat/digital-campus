@@ -306,7 +306,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 _buildTextField(
                   controller: _emailController,
                   label: "Official Student Email",
-                  hint: "username@iesbhopal.ac.in",
+                  hint: "username@apextech.ac.in",
                   icon: Icons.alternate_email_rounded,
                   keyboardType: TextInputType.emailAddress,
                 ),

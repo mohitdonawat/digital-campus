@@ -761,7 +761,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> with SingleTick
   void _showAddCollegeModal(BuildContext context, CampusProvider provider) {
     final nameCtrl = TextEditingController();
     final cityCtrl = TextEditingController(text: "Bhopal");
-    final codeCtrl = TextEditingController(text: "IES-0105");
+    final codeCtrl = TextEditingController(text: "APEX-0105");
     final adminCtrl = TextEditingController(text: "Dr. Alok Verma");
     final emailCtrl = TextEditingController(text: "registrar@newcollege.ac.in");
     String generatedPassword = "Campus@${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}#";
