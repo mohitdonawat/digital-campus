@@ -87,6 +87,8 @@ migrate_working_dir/
 # ── Ignore Documentation, Presentation Decks & Scratch Scripts ────────
 docs/
 **/docs/
+ies_ecampus/
+**/ies_ecampus/
 generate_logo.ps1
 ~$*
 **/~$*
