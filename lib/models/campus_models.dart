@@ -245,6 +245,118 @@ class TimetablePeriod {
 }
 
 // -------------------------------------------------------------
+// Live Class & Lecture Session Model
+// -------------------------------------------------------------
+enum LiveClassStatus {
+  live,
+  scheduled,
+  completed,
+}
+
+enum MeetingPlatform {
+  jitsi,
+  googleMeet,
+  zoom,
+  custom,
+}
+
+extension MeetingPlatformExtension on MeetingPlatform {
+  String get displayName {
+    switch (this) {
+      case MeetingPlatform.jitsi:
+        return "Jitsi Meet (Instant / Free)";
+      case MeetingPlatform.googleMeet:
+        return "Google Meet";
+      case MeetingPlatform.zoom:
+        return "Zoom Meeting";
+      case MeetingPlatform.custom:
+        return "Custom Video Link";
+    }
+  }
+
+  String get shortName {
+    switch (this) {
+      case MeetingPlatform.jitsi:
+        return "Jitsi";
+      case MeetingPlatform.googleMeet:
+        return "G-Meet";
+      case MeetingPlatform.zoom:
+        return "Zoom";
+      case MeetingPlatform.custom:
+        return "Link";
+    }
+  }
+}
+
+class LiveClassSession {
+  final String id;
+  final String title;
+  final String subjectCode;
+  final String instructorName;
+  final String topic;
+  final String room;
+  final DateTime scheduledAt;
+  final String durationText;
+  final LiveClassStatus status;
+  final MeetingPlatform platform;
+  final String meetingUrl;
+  final int attendeesCount;
+  final String? recordingUrl;
+  final String? aiSummary;
+
+  const LiveClassSession({
+    required this.id,
+    required this.title,
+    required this.subjectCode,
+    required this.instructorName,
+    required this.topic,
+    required this.room,
+    required this.scheduledAt,
+    required this.durationText,
+    required this.status,
+    required this.platform,
+    required this.meetingUrl,
+    this.attendeesCount = 0,
+    this.recordingUrl,
+    this.aiSummary,
+  });
+
+  LiveClassSession copyWith({
+    String? id,
+    String? title,
+    String? subjectCode,
+    String? instructorName,
+    String? topic,
+    String? room,
+    DateTime? scheduledAt,
+    String? durationText,
+    LiveClassStatus? status,
+    MeetingPlatform? platform,
+    String? meetingUrl,
+    int? attendeesCount,
+    String? recordingUrl,
+    String? aiSummary,
+  }) {
+    return LiveClassSession(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      subjectCode: subjectCode ?? this.subjectCode,
+      instructorName: instructorName ?? this.instructorName,
+      topic: topic ?? this.topic,
+      room: room ?? this.room,
+      scheduledAt: scheduledAt ?? this.scheduledAt,
+      durationText: durationText ?? this.durationText,
+      status: status ?? this.status,
+      platform: platform ?? this.platform,
+      meetingUrl: meetingUrl ?? this.meetingUrl,
+      attendeesCount: attendeesCount ?? this.attendeesCount,
+      recordingUrl: recordingUrl ?? this.recordingUrl,
+      aiSummary: aiSummary ?? this.aiSummary,
+    );
+  }
+}
+
+// -------------------------------------------------------------
 // 4. Digital Certificate Model (Verifiable Credentials)
 // -------------------------------------------------------------
 class DigitalCertificate {
@@ -368,6 +480,12 @@ class BusRoute {
     required this.speedKmph,
     required this.stopList,
   });
+
+  String get busNumber => busPlateNumber;
+  String get currentStatus => currentStop;
+  double get currentSpeed => speedKmph;
+  String get nextStoppage => nextStop;
+  String get estimatedArrivalNext => "$etaMinutes mins";
 }
 
 // -------------------------------------------------------------
@@ -438,6 +556,8 @@ class DropoutRiskAnalysis {
     required this.primaryRiskFactors,
     required this.recommendedInterventions,
   });
+
+  String get overallRiskLevel => riskTier;
 }
 
 class PredictivePerformance {
@@ -456,6 +576,9 @@ class PredictivePerformance {
     required this.subjectRiskScores,
     required this.highLeverageActions,
   });
+
+  double get predictedFinalCgpa => predictedSgpa;
+  double get confidenceScore => 0.92;
 }
 
 class LearningRecommendation {
@@ -595,6 +718,10 @@ class StudentAttendanceRecord {
   final bool isPresentToday;
   final int totalClasses;
   final int attendedClasses;
+  final double cgpa;
+  final String parentPhone;
+  final Map<String, double> subjectAttendance;
+  final String registrationStatus; // "Approved", "Pending", "Rejected", "Not Registered"
 
   const StudentAttendanceRecord({
     required this.studentId,
@@ -607,6 +734,16 @@ class StudentAttendanceRecord {
     required this.isPresentToday,
     required this.totalClasses,
     required this.attendedClasses,
+    this.cgpa = 8.20,
+    this.parentPhone = "+91 94250 88991",
+    this.subjectAttendance = const {
+      "CS601 Compiler Design": 84.5,
+      "CS602 Computer Networks": 81.0,
+      "CS603 Cloud Architecture": 78.5,
+      "CS604 Networks Lab": 90.0,
+      "CS605 Compiler Lab": 88.0,
+    },
+    this.registrationStatus = "Approved",
   });
 
   factory StudentAttendanceRecord.fromJson(Map<String, dynamic> json) {
@@ -621,6 +758,9 @@ class StudentAttendanceRecord {
       isPresentToday: json['is_present_today'] == true,
       totalClasses: (json['total_classes'] is num) ? (json['total_classes'] as num).toInt() : 0,
       attendedClasses: (json['attended_classes'] is num) ? (json['attended_classes'] as num).toInt() : 0,
+      cgpa: (json['cgpa'] is num) ? (json['cgpa'] as num).toDouble() : 8.20,
+      parentPhone: json['parent_phone']?.toString() ?? "+91 94250 88991",
+      registrationStatus: json['registration_status']?.toString() ?? "Approved",
     );
   }
 
@@ -636,6 +776,9 @@ class StudentAttendanceRecord {
       'is_present_today': isPresentToday,
       'total_classes': totalClasses,
       'attended_classes': attendedClasses,
+      'cgpa': cgpa,
+      'parent_phone': parentPhone,
+      'registration_status': registrationStatus,
     };
   }
 
@@ -644,6 +787,10 @@ class StudentAttendanceRecord {
     double? attendancePercentage,
     int? attendedClasses,
     int? totalClasses,
+    double? cgpa,
+    String? parentPhone,
+    Map<String, double>? subjectAttendance,
+    String? registrationStatus,
   }) {
     return StudentAttendanceRecord(
       studentId: studentId,
@@ -656,6 +803,10 @@ class StudentAttendanceRecord {
       isPresentToday: isPresentToday ?? this.isPresentToday,
       totalClasses: totalClasses ?? this.totalClasses,
       attendedClasses: attendedClasses ?? this.attendedClasses,
+      cgpa: cgpa ?? this.cgpa,
+      parentPhone: parentPhone ?? this.parentPhone,
+      subjectAttendance: subjectAttendance ?? this.subjectAttendance,
+      registrationStatus: registrationStatus ?? this.registrationStatus,
     );
   }
 }
@@ -705,6 +856,8 @@ class FacultyProfessionalProfile {
     ],
     this.studentFeedbackRating = 4.88,
   });
+
+  String get cabin => cabinNumber;
 }
 
 // -------------------------------------------------------------
@@ -724,10 +877,10 @@ class AdminProfessionalProfile {
   final String nirfBand;
 
   const AdminProfessionalProfile({
-    this.id = "ADM-REG-001",
-    this.name = "Dr. R.K. Saxena",
-    this.designation = "Registrar & Chief Controller of Examinations",
-    this.office = "Office of Academic Governance & University Affairs",
+    this.id = "ADM-DIR-001",
+    this.name = "Mr. Shridhar Donawat",
+    this.designation = "Dean & Director",
+    this.office = "Directorate & Office of University Governance",
     this.authorizationLevel = "Tier-1 Chancellor Seal Authority",
     this.complianceLevel = "AICTE • UGC • RGPV Statutory Regulatory Board",
     this.digitalSigningKeyHash = "SHA256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -765,6 +918,12 @@ class ParentProfessionalProfile {
     this.isKycVerified = true,
     this.paymentPreference = "Direct NetBanking / UPI Auto-Debits",
   });
+
+  String get name => guardianName;
+  String get relationship => relation;
+  String get wardRollNumber => wardRoll;
+  int get wardSemester => 6;
+  String get studentName => wardName;
 }
 
 // -------------------------------------------------------------
@@ -789,4 +948,211 @@ class AiCareerInsight {
     required this.nextActionPlan,
   });
 }
+
+// -------------------------------------------------------------
+// 18. Semester Course & Academic Registration
+// -------------------------------------------------------------
+enum RegistrationStatus {
+  pending,
+  approved,
+  rejected,
+}
+
+extension RegistrationStatusExtension on RegistrationStatus {
+  String get label {
+    switch (this) {
+      case RegistrationStatus.pending:
+        return "Pending Approval";
+      case RegistrationStatus.approved:
+        return "Approved";
+      case RegistrationStatus.rejected:
+        return "Rejected";
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case RegistrationStatus.pending:
+        return const Color(0xFFD97706); // Amber
+      case RegistrationStatus.approved:
+        return const Color(0xFF16A34A); // Green
+      case RegistrationStatus.rejected:
+        return const Color(0xFFDC2626); // Red
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case RegistrationStatus.pending:
+        return Icons.pending_actions_rounded;
+      case RegistrationStatus.approved:
+        return Icons.check_circle_rounded;
+      case RegistrationStatus.rejected:
+        return Icons.cancel_rounded;
+    }
+  }
+}
+
+class SemesterRegistrationCourse {
+  final String courseCode;
+  final String courseName;
+  final double credits;
+  final String category; // "Core Theory", "Professional Elective", "Open Elective", "Practical / Lab"
+
+  const SemesterRegistrationCourse({
+    required this.courseCode,
+    required this.courseName,
+    required this.credits,
+    required this.category,
+  });
+}
+
+class SemesterRegistration {
+  final String id;
+  final String studentId;
+  final String studentName;
+  final String rollNumber;
+  final String enrollmentNumber;
+  final String branch;
+  final int semester;
+  final String academicYear;
+  final String section;
+  final String studentPhone;
+  final String parentPhone;
+  final double previousSgpa;
+  final double currentCgpa;
+  final int activeBacklogs;
+  final List<SemesterRegistrationCourse> coreCourses;
+  final SemesterRegistrationCourse selectedElective;
+  final SemesterRegistrationCourse selectedOpenElective;
+  final List<SemesterRegistrationCourse> labCourses;
+  final double totalCredits;
+  final String feeReceiptNo;
+  final bool feeCleared;
+  final String hostelOrDayScholar;
+  final bool antiRaggingAccepted;
+  final RegistrationStatus status;
+  final DateTime submittedAt;
+  final DateTime? reviewedAt;
+  final String? reviewedByFaculty;
+  final String? rejectionReason;
+  final String? facultyRemarks;
+
+  const SemesterRegistration({
+    required this.id,
+    required this.studentId,
+    required this.studentName,
+    required this.rollNumber,
+    required this.enrollmentNumber,
+    required this.branch,
+    required this.semester,
+    required this.academicYear,
+    required this.section,
+    required this.studentPhone,
+    required this.parentPhone,
+    required this.previousSgpa,
+    required this.currentCgpa,
+    required this.activeBacklogs,
+    required this.coreCourses,
+    required this.selectedElective,
+    required this.selectedOpenElective,
+    required this.labCourses,
+    required this.totalCredits,
+    required this.feeReceiptNo,
+    required this.feeCleared,
+    required this.hostelOrDayScholar,
+    required this.antiRaggingAccepted,
+    required this.status,
+    required this.submittedAt,
+    this.reviewedAt,
+    this.reviewedByFaculty,
+    this.rejectionReason,
+    this.facultyRemarks,
+  });
+
+  SemesterRegistration copyWith({
+    RegistrationStatus? status,
+    DateTime? reviewedAt,
+    String? reviewedByFaculty,
+    String? rejectionReason,
+    String? facultyRemarks,
+    SemesterRegistrationCourse? selectedElective,
+    SemesterRegistrationCourse? selectedOpenElective,
+    String? feeReceiptNo,
+    bool? feeCleared,
+    String? studentPhone,
+    String? parentPhone,
+    double? totalCredits,
+  }) {
+    return SemesterRegistration(
+      id: id,
+      studentId: studentId,
+      studentName: studentName,
+      rollNumber: rollNumber,
+      enrollmentNumber: enrollmentNumber,
+      branch: branch,
+      semester: semester,
+      academicYear: academicYear,
+      section: section,
+      studentPhone: studentPhone ?? this.studentPhone,
+      parentPhone: parentPhone ?? this.parentPhone,
+      previousSgpa: previousSgpa,
+      currentCgpa: currentCgpa,
+      activeBacklogs: activeBacklogs,
+      coreCourses: coreCourses,
+      selectedElective: selectedElective ?? this.selectedElective,
+      selectedOpenElective: selectedOpenElective ?? this.selectedOpenElective,
+      labCourses: labCourses,
+      totalCredits: totalCredits ?? this.totalCredits,
+      feeReceiptNo: feeReceiptNo ?? this.feeReceiptNo,
+      feeCleared: feeCleared ?? this.feeCleared,
+      hostelOrDayScholar: hostelOrDayScholar,
+      antiRaggingAccepted: antiRaggingAccepted,
+      status: status ?? this.status,
+      submittedAt: submittedAt,
+      reviewedAt: reviewedAt ?? this.reviewedAt,
+      reviewedByFaculty: reviewedByFaculty ?? this.reviewedByFaculty,
+      rejectionReason: rejectionReason ?? this.rejectionReason,
+      facultyRemarks: facultyRemarks ?? this.facultyRemarks,
+    );
+  }
+}
+
+// -------------------------------------------------------------
+// 19. Campus Live Notifications & Alerts
+// -------------------------------------------------------------
+class CampusNotificationItem {
+  final String id;
+  final String title;
+  final String body;
+  final DateTime timestamp;
+  final String type; // "registration", "attendance", "fee", "academic", "security"
+  final bool isRead;
+  final String? actionRoute;
+
+  const CampusNotificationItem({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.timestamp,
+    required this.type,
+    this.isRead = false,
+    this.actionRoute,
+  });
+
+  CampusNotificationItem copyWith({
+    bool? isRead,
+  }) {
+    return CampusNotificationItem(
+      id: id,
+      title: title,
+      body: body,
+      timestamp: timestamp,
+      type: type,
+      isRead: isRead ?? this.isRead,
+      actionRoute: actionRoute,
+    );
+  }
+}
+
 

@@ -8,6 +8,7 @@ import '../../core/services/document_download_service.dart';
 import '../../models/campus_models.dart';
 import '../../providers/campus_provider.dart';
 import '../lifecycle/edit_profile_screen.dart';
+import '../splash/landing_splash_screen.dart';
 
 class ProfessionalAccountScreen extends StatefulWidget {
   const ProfessionalAccountScreen({super.key});
@@ -306,7 +307,7 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
           const Divider(height: 1, color: AppColors.borderLight),
           const SizedBox(height: 10),
 
-          // Role Switcher Preview Ribbon
+          // Active Role & Prominent Logout Action
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -315,7 +316,7 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
                   Icon(roleIcon, size: 16, color: roleColor),
                   const SizedBox(width: 6),
                   Text(
-                    "Active Persona: ${role.displayName.split(' ').first}",
+                    "Active Portal: ${role.displayName.split(' ').first}",
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w800,
@@ -325,20 +326,27 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
                 ],
               ),
               InkWell(
-                onTap: () => _showQuickRoleModal(context, provider),
+                onTap: () => _confirmLogout(context),
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceSubtle,
+                    color: AppColors.error.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.borderLight),
+                    border: Border.all(color: AppColors.error.withOpacity(0.4)),
                   ),
                   child: const Row(
                     children: [
-                      Text("Switch Role", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700)),
+                      Icon(Icons.logout_rounded, size: 13, color: AppColors.error),
                       SizedBox(width: 4),
-                      Icon(Icons.swap_horiz_rounded, size: 14),
+                      Text(
+                        "Log Out",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.error,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -856,6 +864,35 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
             ],
           ),
         ),
+        const SizedBox(height: 14),
+
+        // Session Management & Direct Sign-Out Card
+        _buildInfoCard(
+          title: "SESSION MANAGEMENT & LOGOUT",
+          subtitle: "Safely end current portal session and return to universe gateway",
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                "Logging out clears active session cache and returns you to the Digital Campus Universe Selection Gateway where you can pick any role cleanly.",
+                style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.4),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () => _confirmLogout(context),
+                icon: const Icon(Icons.logout_rounded, size: 18),
+                label: const Text("Log Out & Exit Session", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -1281,30 +1318,46 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
     );
   }
 
-  void _showQuickRoleModal(BuildContext context, CampusProvider provider) {
-    showModalBottomSheet(
+  void _confirmLogout(BuildContext context) {
+    HapticFeedback.heavyImpact();
+    showDialog(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text("Switch Campus Persona", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
-              const SizedBox(height: 12),
-              ...UserRole.values.map((r) => ListTile(
-                    title: Text(r.displayName, style: const TextStyle(fontWeight: FontWeight.w700)),
-                    subtitle: Text(r.personaName, style: const TextStyle(fontSize: 11)),
-                    trailing: r == provider.currentRole ? const Icon(Icons.check_circle_rounded, color: AppColors.primary) : null,
-                    onTap: () {
-                      provider.switchRole(r);
-                      Navigator.pop(ctx);
-                    },
-                  )),
-            ],
-          ),
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: AppColors.error),
+            SizedBox(width: 8),
+            Text("Confirm Sign Out", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+          ],
         ),
+        content: const Text(
+          "Are you sure you want to end your active portal session? You will be safely returned to the Digital Campus Universe Selection Gateway to choose a persona.",
+          style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Stay Logged In", style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LandingSplashScreen()),
+                (route) => false,
+              );
+            },
+            child: const Text("Log Out", style: TextStyle(fontWeight: FontWeight.w800)),
+          ),
+        ],
       ),
     );
   }

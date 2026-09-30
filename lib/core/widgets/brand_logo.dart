@@ -126,71 +126,41 @@ class BrandLogo extends StatelessWidget {
       height: s,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(s * 0.28),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E40AF), Color(0xFF3B82F6), Color(0xFF6366F1)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2563EB).withOpacity(0.25),
-            blurRadius: s * 0.3,
+            color: const Color(0xFF2563EB).withOpacity(0.18),
+            blurRadius: s * 0.25,
             offset: Offset(0, s * 0.08),
           ),
         ],
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: const Color(0xFFE2E8F0),
           width: 1.2,
         ),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Geometric inner glow / diamond
-          Transform.rotate(
-            angle: 0.785398, // 45 degrees
-            child: Container(
-              width: s * 0.55,
-              height: s * 0.55,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(s * 0.12),
-                color: Colors.white.withOpacity(0.12),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.25),
-                  width: 0.8,
-                ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(s * 0.26),
+        child: Image.asset(
+          "assets/images/college_logo.png",
+          fit: BoxFit.contain,
+          errorBuilder: (_, __, ___) => Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E40AF), Color(0xFF3B82F6), Color(0xFF6366F1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                Icons.school_rounded,
+                size: s * 0.52,
+                color: Colors.white,
               ),
             ),
           ),
-          // Academic Cap & AI Spark Core Icon
-          Center(
-            child: Icon(
-              Icons.school_rounded,
-              size: s * 0.52,
-              color: Colors.white,
-            ),
-          ),
-          // Small golden tech-node accent at top right
-          Positioned(
-            top: s * 0.16,
-            right: s * 0.16,
-            child: Container(
-              width: s * 0.16,
-              height: s * 0.16,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFBE0B),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.2),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFFBE0B).withOpacity(0.6),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

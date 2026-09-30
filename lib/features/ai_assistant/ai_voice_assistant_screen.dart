@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/constants/app_constants.dart';
+import '../../models/campus_models.dart';
 import '../../providers/campus_provider.dart';
 import '../attendance/attendance_screen.dart';
 import '../timetable/timetable_screen.dart';
@@ -12,6 +14,10 @@ import '../ai_analytics/early_dropout_screen.dart';
 import '../transport/transport_screen.dart';
 import '../hostel/hostel_screen.dart';
 import '../lifecycle/edit_profile_screen.dart';
+import '../lifecycle/student_lifecycle_screen.dart';
+import '../registration/semester_registration_screen.dart';
+import '../registration/faculty_registration_desk_screen.dart';
+import '../account/professional_account_screen.dart';
 import '../helpdesk/helpdesk_screen.dart';
 
 class AiVoiceAssistantScreen extends StatefulWidget {
@@ -61,21 +67,61 @@ class _AiVoiceAssistantScreenState extends State<AiVoiceAssistantScreen> with Si
     final messages = provider.chatMessages;
     final isListening = provider.isVoiceListening;
     final isSpeaking = provider.isAiSpeaking;
+    final role = provider.currentRole;
 
     return Scaffold(
       backgroundColor: AppColors.bgLight,
       appBar: AppBar(
-        title: const Row(
+        titleSpacing: 0,
+        title: Row(
           children: [
-            Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 20),
-            SizedBox(width: 8),
-            Text("Campus AI Copilot"),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: _getRoleColor(role).withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _getRoleIcon(role),
+                color: _getRoleColor(role),
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _getRoleTitle(role),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    _getRoleSubtitle(provider),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: _getRoleColor(role),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
         actions: [
           Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(
               color: isSpeaking ? AppColors.primary.withOpacity(0.12) : AppColors.surfaceSubtle,
               borderRadius: BorderRadius.circular(16),
@@ -89,14 +135,14 @@ class _AiVoiceAssistantScreenState extends State<AiVoiceAssistantScreen> with Si
               children: [
                 Icon(
                   isSpeaking ? Icons.volume_up_rounded : Icons.graphic_eq_rounded,
-                  size: 14,
+                  size: 13,
                   color: isSpeaking ? AppColors.primary : AppColors.textMuted,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   isSpeaking ? "Speaking..." : "Voice Ready",
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w700,
                     color: isSpeaking ? AppColors.primary : AppColors.textMuted,
                   ),
@@ -181,17 +227,9 @@ class _AiVoiceAssistantScreenState extends State<AiVoiceAssistantScreen> with Si
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
-                children: [
-                  _buildPromptChip(provider, "Mera attendance kitna hai?"),
-                  _buildPromptChip(provider, "Compiler Design safe bunks"),
-                  _buildPromptChip(provider, "Aaj ka timetable aur substitute"),
-                  _buildPromptChip(provider, "Mess me aaj lunch kya hai?"),
-                  _buildPromptChip(provider, "Pending fees dues kitni hai?"),
-                  _buildPromptChip(provider, "Bus Route 4 live kahan hai?"),
-                  _buildPromptChip(provider, "Placement package kitna gaya?"),
-                  _buildPromptChip(provider, "Gate Pass kaise banega?"),
-                  _buildPromptChip(provider, "Bonafide Certificate chahiye"),
-                ],
+                children: _getRolePrompts(role).map((prompt) {
+                  return _buildPromptChip(provider, prompt);
+                }).toList(),
               ),
             ),
           ),
@@ -422,6 +460,8 @@ class _AiVoiceAssistantScreenState extends State<AiVoiceAssistantScreen> with Si
   }
 
   void _showVoiceOptionsModal(BuildContext context, CampusProvider provider) {
+    final queries = provider.getSampleVoiceQueriesForRole(provider.currentRole);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -446,13 +486,13 @@ class _AiVoiceAssistantScreenState extends State<AiVoiceAssistantScreen> with Si
                 ),
               ),
               const SizedBox(height: 16),
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.mic_rounded, color: AppColors.primary, size: 22),
-                  SizedBox(width: 8),
+                  Icon(Icons.mic_rounded, color: _getRoleColor(provider.currentRole), size: 22),
+                  const SizedBox(width: 8),
                   Text(
-                    "Smart Voice Queries",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                    "${provider.currentRole.displayName.split(' ').first} Voice Queries",
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark),
                   ),
                 ],
               ),
@@ -462,16 +502,7 @@ class _AiVoiceAssistantScreenState extends State<AiVoiceAssistantScreen> with Si
                 style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
               ),
               const SizedBox(height: 12),
-              ...[
-                "Mera attendance kitna hai aur safe bunks kitne hain?",
-                "Compiler Design me kitni classes attend karni hongi?",
-                "Aaj ka timetable aur lecture substitution batao",
-                "Hostel mess me aaj lunch aur dinner me kya bana hai?",
-                "Pending fee dues kitni hai aur due date kab hai?",
-                "Campus Bus Route 4 abhi kahan tak pahuchi hai?",
-                "Hostel gate pass aur Bonafide certificate kaise milega?",
-                "College placement package aur top companies ke baare me batao",
-              ].map((queryText) => InkWell(
+              ...queries.map((queryText) => InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -482,10 +513,10 @@ class _AiVoiceAssistantScreenState extends State<AiVoiceAssistantScreen> with Si
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 12,
-                        backgroundColor: AppColors.surfaceSubtle,
-                        child: Icon(Icons.record_voice_over_rounded, size: 14, color: AppColors.primary),
+                        backgroundColor: _getRoleColor(provider.currentRole).withOpacity(0.12),
+                        child: Icon(Icons.record_voice_over_rounded, size: 14, color: _getRoleColor(provider.currentRole)),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -507,29 +538,130 @@ class _AiVoiceAssistantScreenState extends State<AiVoiceAssistantScreen> with Si
   }
 
   void _handleActionClick(BuildContext context, String action, CampusProvider provider) {
-    if (action.contains("Attendance") || action.contains("Radar") || action.contains("Subjects")) {
+    if (action.contains("Registration") || action.contains("Course") || action.contains("Desk") || action.contains("Verification")) {
+      if (provider.currentRole == UserRole.faculty || provider.currentRole == UserRole.admin) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const FacultyRegistrationDeskScreen()));
+      } else {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const SemesterRegistrationScreen()));
+      }
+    } else if (action.contains("Attendance") || action.contains("Radar") || action.contains("Defaulter") || action.contains("Subjects")) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const AttendanceScreen()));
+    } else if (action.contains("ID Card") || action.contains("PVC") || action.contains("Pass") || action.contains("Gate Pass") || action.contains("Identity")) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentLifecycleScreen()));
     } else if (action.contains("GPA") || action.contains("Performance") || action.contains("Sandbox") || action.contains("Roadmap")) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const PredictivePerformanceScreen()));
     } else if (action.contains("Dropout") || action.contains("EWS") || action.contains("Risk") || action.contains("Remedial")) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const EarlyDropoutScreen()));
-    } else if (action.contains("Timetable") || action.contains("Classroom") || action.contains("Leave Note")) {
+    } else if (action.contains("Timetable") || action.contains("Classroom") || action.contains("Leave Note") || action.contains("Schedule") || action.contains("Lecture")) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const TimetableScreen()));
-    } else if (action.contains("Fee") || action.contains("Tuition") || action.contains("UPI") || action.contains("Receipts") || action.contains("Installment")) {
+    } else if (action.contains("Fee") || action.contains("Tuition") || action.contains("UPI") || action.contains("Receipts") || action.contains("Dues")) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const FeePaymentScreen()));
-    } else if (action.contains("Certificate") || action.contains("Bonafide") || action.contains("Marksheet") || action.contains("QR Hash")) {
+    } else if (action.contains("Certificate") || action.contains("Bonafide") || action.contains("Marksheet") || action.contains("Degree") || action.contains("Authority")) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const DigitalCertificatesScreen()));
-    } else if (action.contains("Bus") || action.contains("Track") || action.contains("GPS") || action.contains("Pass")) {
+    } else if (action.contains("Bus") || action.contains("Track") || action.contains("GPS") || action.contains("Fleet") || action.contains("Transit")) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const TransportScreen()));
-    } else if (action.contains("Menu") || action.contains("Hostel") || action.contains("Gate Pass") || action.contains("Passes") || action.contains("Warden") || action.contains("Security QR")) {
+    } else if (action.contains("Menu") || action.contains("Hostel") || action.contains("Mess") || action.contains("Dinner") || action.contains("Warden")) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const HostelScreen()));
-    } else if (action.contains("Profile") || action.contains("Edit") || action.contains("PVC") || action.contains("ID Card")) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
-    } else if (action.contains("Helpdesk") || action.contains("Ragging") || action.contains("SOS") || action.contains("Ticket")) {
+    } else if (action.contains("Profile") || action.contains("Dossier") || action.contains("Portfolio") || action.contains("Account")) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfessionalAccountScreen()));
+    } else if (action.contains("Helpdesk") || action.contains("Ragging") || action.contains("SOS") || action.contains("Ticket") || action.contains("Mentor") || action.contains("Hotline")) {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpdeskScreen()));
     } else {
       provider.sendAiUserMessage(action);
       _scrollToBottom();
+    }
+  }
+
+  static String _getRoleTitle(UserRole role) {
+    switch (role) {
+      case UserRole.faculty:
+        return "Faculty AI Teaching Copilot";
+      case UserRole.admin:
+        return "Executive AI Governance";
+      case UserRole.parent:
+        return "Parent AI Ward Care";
+      case UserRole.student:
+        return "Campus AI Study Copilot";
+    }
+  }
+
+  static String _getRoleSubtitle(CampusProvider provider) {
+    switch (provider.currentRole) {
+      case UserRole.faculty:
+        return "${provider.facultyProfile.name} • ${provider.facultyProfile.department}";
+      case UserRole.admin:
+        return "${provider.adminProfile.name} • ${provider.adminProfile.designation}";
+      case UserRole.parent:
+        return "Ward: ${provider.parentProfile.wardName} (${provider.parentProfile.wardRollNumber})";
+      case UserRole.student:
+        return "${provider.student.name} • 6th Sem ${provider.student.branch}";
+    }
+  }
+
+  static Color _getRoleColor(UserRole role) {
+    switch (role) {
+      case UserRole.faculty:
+        return const Color(0xFF2563EB);
+      case UserRole.admin:
+        return const Color(0xFFD97706);
+      case UserRole.parent:
+        return const Color(0xFF10B981);
+      case UserRole.student:
+        return AppColors.primary;
+    }
+  }
+
+  static IconData _getRoleIcon(UserRole role) {
+    switch (role) {
+      case UserRole.faculty:
+        return Icons.psychology_rounded;
+      case UserRole.admin:
+        return Icons.account_balance_rounded;
+      case UserRole.parent:
+        return Icons.family_restroom_rounded;
+      case UserRole.student:
+        return Icons.auto_awesome_rounded;
+    }
+  }
+
+  static List<String> _getRolePrompts(UserRole role) {
+    switch (role) {
+      case UserRole.faculty:
+        return [
+          "Show today's lecture schedule",
+          "Pending course registrations",
+          "Attendance defaulters (<75%)",
+          "Lab 3 High Performance batch",
+          "Create live class link",
+          "Computer Networks practicals",
+        ];
+      case UserRole.admin:
+        return [
+          "Campus attendance ratio today",
+          "Fee revenue & collection summary",
+          "AICTE & NAAC compliance audit",
+          "Affiliated colleges tenant count",
+          "Staff grievance escalations",
+          "Institutional faculty strength",
+        ];
+      case UserRole.parent:
+        return [
+          "Rahul ki attendance kitni hai?",
+          "Pending college fee dues kitni hai?",
+          "Bus Route 4 live kahan hai?",
+          "Hostel gate pass & leave status",
+          "Call CSE Mentor Dr. Mohit",
+          "Today's hostel dinner menu",
+        ];
+      case UserRole.student:
+        return [
+          "Mera attendance kitna hai?",
+          "Compiler Design safe bunks",
+          "Expected SGPA roadmap",
+          "Hostel mess menu aaj ka",
+          "Campus Bus Route 4 live kahan hai?",
+          "Bonafide Certificate download",
+        ];
     }
   }
 }

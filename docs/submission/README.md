@@ -1,7 +1,10 @@
 # 📁 HACKATHON JURY EVALUATION & SUBMISSION DOSSIER
 ## Digital Campus: Unified Smart Campus Operating System
 
-> **Official Submission Dossier:** Compiled strictly in accordance with the Hackathon Evaluation Committee & Jury Panel Guidelines.
+> **Official Submission Dossier:** Compiled strictly in accordance with Hackathon Evaluation Committee & Jury Panel Guidelines.  
+> **Team Name:** **Educated Warriors**  
+> **Team Leader:** **Mr. Mohit Donawat** (Lead Architect & Full-Stack Systems Engineer)  
+> **Project:** Digital Campus — Sovereign AI-Powered Higher Education Operating System (HE-OS)  
 
 ---
 

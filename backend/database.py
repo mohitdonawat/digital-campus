@@ -150,7 +150,7 @@ def init_database():
         cursor.execute("""
         INSERT INTO certificates VALUES (
             'DC-2026-BF-9042', 'Official State Scholarship Bonafide Certificate',
-            'Bonafide', ?, 'Rahul Sharma', 'CS22B045', ?, 'Dr. R.K. Saxena (Registrar)'
+            'Bonafide', ?, 'Rahul Sharma', 'CS22B045', ?, 'Mr. Shridhar Donawat (Dean & Director)'
         );
         """, (now, digest))
 

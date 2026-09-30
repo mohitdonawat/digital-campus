@@ -1,0 +1,81 @@
+PROPRIETARY SOURCE-AVAILABLE & NON-COMMERCIAL LICENSE
+Copyright (c) 2026 Mr. Mohit Donawat. All Rights Reserved.
+
+================================================================================
+STRICTLY PROPRIETARY, CONFIDENTIAL & ALL RIGHTS RESERVED
+================================================================================
+
+This software, its source code, documentation, architecture, user interface
+designs, database schemas, and sovereign artificial intelligence algorithms
+("the Software") are the exclusive intellectual property and trade secrets of
+Mr. Mohit Donawat ("the Copyright Holder").
+
+By accessing, cloning, viewing, or downloading the Software from this repository
+or any other distribution channel, you ("the User") agree to be bound by the
+terms and conditions of this License.
+
+1. PERMITTED USE:
+-----------------
+The Copyright Holder grants you a personal, non-exclusive, non-transferable,
+revocable license to view and inspect the source code of the Software SOLELY
+for the purposes of:
+  (a) Non-commercial academic inspection;
+  (b) Evaluation by recognized juries in official hackathons or competitions;
+  (c) Personal portfolio review.
+
+2. STRICT PROHIBITIONS (WHAT YOU CANNOT DO):
+--------------------------------------------
+Under NO circumstances is any individual, corporation, educational institution,
+enterprise, non-profit organization, or entity permitted to:
+  (a) COMMERCIAL USE: Sell, resell, rent, lease, monetize, license, sub-license,
+      host, deploy as a Software-as-a-Service (SaaS), white-label, or use the
+      Software (or any portion thereof) for any commercial gain or enterprise
+      deployment.
+  (b) DERIVATIVE WORKS: Modify, alter, adapt, translate, decompile, disassemble,
+      reverse-engineer, or create derivative works based upon the Software.
+  (c) REDISTRIBUTION: Copy, reproduce, republish, redistribute, mirror, or
+      fork this repository for public or commercial deployment under any other
+      name, author, or organization.
+  (d) REMOVAL OF NOTICES: Remove, alter, or obscure any copyright, author,
+      trademark, or legal notice displayed in the source code or documentation.
+  (e) IP INFRINGEMENT: Claim ownership, authorship, or inventorship of any
+      algorithm, UI design, architectural model, or code contained herein.
+
+3. INTELLECTUAL PROPERTY OWNERSHIP:
+-----------------------------------
+All right, title, and interest in and to the Software, including all associated
+patents, copyrights, trademarks, trade dress, trade secrets, algorithms, and
+moral rights, are and shall remain exclusively with Mr. Mohit Donawat.
+Nothing in this License transfers, assigns, or conveys any ownership right to
+any third party.
+
+4. TERMINATION & REVOCATION:
+----------------------------
+Any breach or violation of any term of this License automatically and
+immediately terminates your right to view, inspect, or retain any copy of the
+Software. Upon termination, you must immediately delete and destroy all copies
+of the Software in your possession or control.
+
+5. LEGAL ENFORCEMENT & REMEDIES:
+--------------------------------
+Unauthorized use, commercialization, copying, or distribution of this Software
+constitutes copyright infringement and intellectual property theft, and will be
+prosecuted to the maximum extent of the law under:
+  - The Indian Copyright Act, 1957 (and amendments);
+  - The Information Technology Act, 2000;
+  - The Berne Convention for the Protection of Literary and Artistic Works;
+  - The Universal Copyright Convention (UCC);
+  - Applicable international copyright, patent, and trade-secret treaties.
+
+The Copyright Holder reserves all rights to seek statutory damages, injunctive
+relief, impoundment of infringing materials, and legal fee compensation.
+
+6. CONTACT & LICENSING INQUIRIES:
+---------------------------------
+For enterprise licensing, commercial deployment inquiries, or official written
+permissions, please contact the sole author and copyright holder directly:
+
+  Author:     Mr. Mohit Donawat
+  Portfolio:  https://mohitdonawat.wildus.app
+  GitHub:     https://github.com/mohitdonawat
+================================================================================

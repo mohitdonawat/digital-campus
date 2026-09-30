@@ -29,6 +29,19 @@ class CampusProvider extends ChangeNotifier {
   ParentProfessionalProfile _parentProfile = const ParentProfessionalProfile();
   ParentProfessionalProfile get parentProfile => _parentProfile;
 
+  dynamic get currentProfile {
+    switch (_currentRole) {
+      case UserRole.faculty:
+        return _facultyProfile;
+      case UserRole.admin:
+        return _adminProfile;
+      case UserRole.parent:
+        return _parentProfile;
+      case UserRole.student:
+        return _student;
+    }
+  }
+
   // AI Automated Career & Placement Insights
   late AiCareerInsight _aiCareerInsight = _computeAiCareerInsight();
   AiCareerInsight get aiCareerInsight => _aiCareerInsight;
@@ -48,9 +61,28 @@ class CampusProvider extends ChangeNotifier {
     return total == 0 ? 0.0 : (attended / total) * 100;
   }
 
-  // Timetable
+  // Timetable & Live Classes
   List<TimetablePeriod> _timetable = List.from(CampusDatabase.todayTimetable);
   List<TimetablePeriod> get timetable => _timetable;
+
+  List<LiveClassSession> _liveClasses = List.from(CampusDatabase.initialLiveClasses);
+  List<LiveClassSession> get liveClasses => _liveClasses;
+
+  // Semester Course & Academic Registration
+  List<SemesterRegistration> _semesterRegistrations = List.from(CampusDatabase.initialSemesterRegistrations);
+  List<SemesterRegistration> get semesterRegistrations => _semesterRegistrations;
+
+  SemesterRegistration get currentStudentRegistration {
+    return _semesterRegistrations.firstWhere(
+      (r) => r.studentId == _student.id,
+      orElse: () => _semesterRegistrations.first,
+    );
+  }
+
+  // Live Campus Notifications & System Messages
+  List<CampusNotificationItem> _notifications = List.from(CampusDatabase.initialNotifications);
+  List<CampusNotificationItem> get notifications => _notifications;
+  int get unreadNotificationsCount => _notifications.where((n) => !n.isRead).length;
 
   // Certificates
   List<DigitalCertificate> _certificates = List.from(CampusDatabase.certificates);
@@ -116,23 +148,8 @@ class CampusProvider extends ChangeNotifier {
     // 1. Synchronously pre-calculate models so widgets NEVER crash on initial build
     _recomputeAiModels();
 
-    // 2. Set default welcome message immediately
-    _chatMessages = [
-      AiChatMessage(
-        id: "ai-init-1",
-        text: "Namaste ${_student.name.split(' ').first}! Digital Campus AI Engine is active with live database records. Speak or type to analyze real-time attendance, predictive GPA, bus tracking, or instant bonafide generation.",
-        isUser: false,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-        actionSuggestions: [
-          "Check my attendance status",
-          "Predict my Semester 6 GPA",
-          "Am I at risk of dropout?",
-          "Where is Campus Bus Route 4?",
-          "Show today's dinner menu",
-          "Generate instant Bonafide",
-        ],
-      ),
-    ];
+    // 2. Set role-isolated welcome message immediately
+    _chatMessages = _getInitialChatMessagesForRole(_currentRole);
 
     // 3. Asynchronously initialize services in background without blocking UI
     _initializeServices();
@@ -213,9 +230,77 @@ class CampusProvider extends ChangeNotifier {
     );
   }
 
+  List<AiChatMessage> _getInitialChatMessagesForRole(UserRole role) {
+    switch (role) {
+      case UserRole.faculty:
+        return [
+          AiChatMessage(
+            id: "ai-init-faculty",
+            text: "Namaste ${_facultyProfile.name}! Faculty AI Teaching & Academic Copilot is ready. Ask about your today's schedule, pending semester registrations, attendance defaulters (<75%), or copy grading.",
+            isUser: false,
+            timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
+            actionSuggestions: [
+              "Show today's lecture schedule",
+              "Pending course registration forms",
+              "Attendance defaulters (<75%)",
+              "Lab 3 High Performance batch status",
+            ],
+          ),
+        ];
+      case UserRole.admin:
+        return [
+          AiChatMessage(
+            id: "ai-init-admin",
+            text: "Pranam ${_adminProfile.name} (${_adminProfile.designation})! Executive AI Governance Copilot is active. Query campus daily attendance ratio, tuition fee collection audit, AICTE/NAAC compliance, or affiliated colleges.",
+            isUser: false,
+            timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
+            actionSuggestions: [
+              "Campus overall attendance ratio",
+              "Fee revenue & collection summary",
+              "AICTE & NAAC compliance audit",
+              "Affiliated colleges tenant count",
+            ],
+          ),
+        ];
+      case UserRole.parent:
+        return [
+          AiChatMessage(
+            id: "ai-init-parent",
+            text: "Namaste ${_parentProfile.name}! Parent AI Ward Care & Safety Copilot is online for your ward ${_parentProfile.wardName} (${_parentProfile.wardRollNumber}, ${_parentProfile.wardBranch} Sem ${_parentProfile.wardSemester}). Track bus location, check attendance & dues, or connect with mentor Dr. Mohit Donawat.",
+            isUser: false,
+            timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
+            actionSuggestions: [
+              "${_parentProfile.wardName.split(' ').first} ki attendance kitni hai?",
+              "Pending college fee dues kitni hai?",
+              "Bus Route 4 live location kahan hai?",
+              "Call CSE Mentor Dr. Mohit",
+            ],
+          ),
+        ];
+      case UserRole.student:
+        return [
+          AiChatMessage(
+            id: "ai-init-student",
+            text: "Namaste ${_student.name.split(' ').first}! Digital Campus AI Engine is active with live database records. Speak or type to analyze real-time attendance, predictive GPA, bus tracking, or instant bonafide generation.",
+            isUser: false,
+            timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
+            actionSuggestions: [
+              "Check my attendance status",
+              "Predict my Semester 6 GPA",
+              "Am I at risk of dropout?",
+              "Where is Campus Bus Route 4?",
+              "Show today's dinner menu",
+              "Generate instant Bonafide",
+            ],
+          ),
+        ];
+    }
+  }
+
   // Switch stakeholder role
   void switchRole(UserRole role) {
     _currentRole = role;
+    _chatMessages = _getInitialChatMessagesForRole(role);
     notifyListeners();
   }
 
@@ -367,6 +452,61 @@ class CampusProvider extends ChangeNotifier {
     }
   }
 
+  // Live Class Scheduling & Execution (Jitsi, Meet, Zoom, Any Link)
+  void scheduleLiveClass(LiveClassSession session) {
+    _liveClasses.insert(0, session);
+    notifyListeners();
+  }
+
+  void startLiveClass(String classId) {
+    final idx = _liveClasses.indexWhere((c) => c.id == classId);
+    if (idx != -1) {
+      _liveClasses[idx] = _liveClasses[idx].copyWith(
+        status: LiveClassStatus.live,
+        durationText: "Live Stream Active Now",
+      );
+      notifyListeners();
+    }
+  }
+
+  void endLiveClass(String classId) {
+    final idx = _liveClasses.indexWhere((c) => c.id == classId);
+    if (idx != -1) {
+      final c = _liveClasses[idx];
+      _liveClasses[idx] = c.copyWith(
+        status: LiveClassStatus.completed,
+        durationText: "Lecture Ended • Saved to History",
+        recordingUrl: "https://stream.digitalcampus.edu/recordings/${c.subjectCode}-${c.id}",
+        aiSummary: "Key concepts covered during live lecture on ${c.topic}. Attendance logged and sync'd to Academic Radar.",
+      );
+      notifyListeners();
+    }
+  }
+
+  // Dynamic Timetable Creation, Upload & Modification
+  void addTimetablePeriod(TimetablePeriod period) {
+    _timetable.add(period);
+    notifyListeners();
+  }
+
+  void uploadTimetable(List<TimetablePeriod> newPeriods) {
+    _timetable = List.from(newPeriods);
+    notifyListeners();
+  }
+
+  void updateTimetablePeriod(TimetablePeriod updated) {
+    final index = _timetable.indexWhere((p) => p.id == updated.id);
+    if (index != -1) {
+      _timetable[index] = updated;
+      notifyListeners();
+    }
+  }
+
+  void deleteTimetablePeriod(String periodId) {
+    _timetable.removeWhere((p) => p.id == periodId);
+    notifyListeners();
+  }
+
   // Real Dynamic Fee Payment Execution
   Future<void> payFee(String feeId) async {
     final index = _fees.indexWhere((f) => f.id == feeId);
@@ -450,16 +590,43 @@ class CampusProvider extends ChangeNotifier {
 
   // ── Smart Sovereign Voice & NLP AI Processing ────────────────────────────
   int _voiceQueryIndex = 0;
-  static const List<String> _sampleVoiceQueries = [
-    "Mera attendance kitna hai aur safe bunks kitne hain?",
-    "Compiler Design me kitni classes attend karni hongi?",
-    "Aaj ka timetable aur lecture substitution batao",
-    "Hostel mess me aaj lunch aur dinner me kya bana hai?",
-    "Pending fee dues kitni hai aur due date kab hai?",
-    "Campus Bus Route 4 abhi kahan tak pahuchi hai?",
-    "Hostel gate pass aur Bonafide certificate kaise milega?",
-    "College placement package aur top companies ke baare me batao",
-  ];
+
+  List<String> getSampleVoiceQueriesForRole(UserRole role) {
+    switch (role) {
+      case UserRole.faculty:
+        return [
+          "Aaj mere kon-kon se lectures scheduled hain?",
+          "Pending semester registration forms kitne hain?",
+          "Attendance defaulters list dikhao CSE 6th sem",
+          "Computer Networks lab evaluation update karo",
+        ];
+      case UserRole.admin:
+        return [
+          "Overall campus attendance report aur status batao",
+          "This semester pending fee collection audit dikhao",
+          "AICTE and NAAC accreditation compliance status",
+          "Colleges multi-tenant registration pending list",
+        ];
+      case UserRole.parent:
+        return [
+          "Rahul ki attendance kitni percent hai?",
+          "College fee dues kitni pending hain?",
+          "Campus bus route 4 kahan tak pahuchi hai?",
+          "Academic mentor se baat karni hai contact do",
+        ];
+      case UserRole.student:
+        return [
+          "Mera attendance kitna hai aur safe bunks kitne hain?",
+          "Compiler Design me kitni classes attend karni hongi?",
+          "Aaj ka timetable aur lecture substitution batao",
+          "Hostel mess me aaj lunch aur dinner me kya bana hai?",
+          "Pending fee dues kitni hai aur due date kab hai?",
+          "Campus Bus Route 4 abhi kahan tak pahuchi hai?",
+          "Hostel gate pass aur Bonafide certificate kaise milega?",
+          "College placement package aur top companies ke baare me batao",
+        ];
+    }
+  }
 
   void toggleVoiceListening([String? customQuery]) {
     _isVoiceListening = !_isVoiceListening;
@@ -469,7 +636,8 @@ class CampusProvider extends ChangeNotifier {
       Timer(const Duration(milliseconds: 1600), () {
         _isVoiceListening = false;
         notifyListeners();
-        final queryToSend = customQuery ?? _sampleVoiceQueries[_voiceQueryIndex % _sampleVoiceQueries.length];
+        final queries = getSampleVoiceQueriesForRole(_currentRole);
+        final queryToSend = customQuery ?? queries[_voiceQueryIndex % queries.length];
         _voiceQueryIndex++;
         sendAiUserMessage(queryToSend);
       });
@@ -498,6 +666,11 @@ class CampusProvider extends ChangeNotifier {
       totalDues: totalDues,
       performance: _predictivePerformance,
       dropoutRisk: _dropoutRisk,
+      role: _currentRole,
+      facultyProfile: _facultyProfile,
+      adminProfile: _adminProfile,
+      parentProfile: _parentProfile,
+      semesterRegistrations: _semesterRegistrations,
       timetable: _timetable,
       busRoute: _busRoute,
       fees: _fees,
@@ -522,9 +695,9 @@ class CampusProvider extends ChangeNotifier {
       state: "Madhya Pradesh",
       affiliation: "Autonomous University • AICTE Approved",
       status: "Active",
-      adminEmail: "registrar@apextech.edu.in",
+      adminEmail: "director@apextech.edu.in",
       adminPassword: "Apex@Campus#2026",
-      adminName: "Dr. R.K. Saxena",
+      adminName: "Mr. Shridhar Donawat",
       studentCount: 4280,
       facultyCount: 210,
       licensePlan: "Autonomous University Tier-1",
@@ -815,6 +988,119 @@ class CampusProvider extends ChangeNotifier {
 
   void toggleAiCopilot() {
     _isAiCopilotEnabled = !_isAiCopilotEnabled;
+    notifyListeners();
+  }
+
+  // ── Semester Course & Academic Registration Workflow ──────────────────────
+  void submitSemesterRegistration(SemesterRegistration form) {
+    final idx = _semesterRegistrations.indexWhere((r) => r.id == form.id || r.studentId == form.studentId);
+    if (idx != -1) {
+      _semesterRegistrations[idx] = form;
+    } else {
+      _semesterRegistrations.insert(0, form);
+    }
+
+    // Add confirmation notification to student
+    _notifications.insert(
+      0,
+      CampusNotificationItem(
+        id: "NOTIF-${DateTime.now().millisecondsSinceEpoch}",
+        title: "Semester 6 Registration Submitted",
+        body: "Your form has been routed to Faculty Advisor Dr. Mohit Donawat for credit & fee verification.",
+        timestamp: DateTime.now(),
+        type: "registration",
+      ),
+    );
+
+    // Update roster registration status
+    final rosterIdx = _classAttendanceRecords.indexWhere((s) => s.studentId == form.studentId);
+    if (rosterIdx != -1) {
+      _classAttendanceRecords[rosterIdx] = _classAttendanceRecords[rosterIdx].copyWith(registrationStatus: "Pending");
+    }
+    notifyListeners();
+  }
+
+  void approveSemesterRegistration(String registrationId, String facultyName, String? remarks) {
+    final idx = _semesterRegistrations.indexWhere((r) => r.id == registrationId);
+    if (idx != -1) {
+      final reg = _semesterRegistrations[idx];
+      _semesterRegistrations[idx] = reg.copyWith(
+        status: RegistrationStatus.approved,
+        reviewedAt: DateTime.now(),
+        reviewedByFaculty: facultyName,
+        facultyRemarks: remarks ?? "Verified and Approved. Credits and eligibility cleared.",
+        rejectionReason: null,
+      );
+
+      // Add instant notification for student
+      _notifications.insert(
+        0,
+        CampusNotificationItem(
+          id: "NOTIF-${DateTime.now().millisecondsSinceEpoch}",
+          title: "✅ Semester Registration APPROVED",
+          body: "Your Semester ${reg.semester} Registration has been APPROVED by $facultyName. ${remarks != null && remarks.isNotEmpty ? 'Remarks: $remarks' : 'Academic enrollment slip active.'}",
+          timestamp: DateTime.now(),
+          type: "registration",
+        ),
+      );
+
+      // Update student's roster record
+      final rosterIdx = _classAttendanceRecords.indexWhere((s) => s.studentId == reg.studentId);
+      if (rosterIdx != -1) {
+        _classAttendanceRecords[rosterIdx] = _classAttendanceRecords[rosterIdx].copyWith(registrationStatus: "Approved");
+      }
+      notifyListeners();
+    }
+  }
+
+  void rejectSemesterRegistration(String registrationId, String facultyName, String reason) {
+    final idx = _semesterRegistrations.indexWhere((r) => r.id == registrationId);
+    if (idx != -1) {
+      final reg = _semesterRegistrations[idx];
+      _semesterRegistrations[idx] = reg.copyWith(
+        status: RegistrationStatus.rejected,
+        reviewedAt: DateTime.now(),
+        reviewedByFaculty: facultyName,
+        rejectionReason: reason,
+        facultyRemarks: null,
+      );
+
+      // Add instant notification for student
+      _notifications.insert(
+        0,
+        CampusNotificationItem(
+          id: "NOTIF-${DateTime.now().millisecondsSinceEpoch}",
+          title: "❌ Semester Registration REJECTED",
+          body: "Your Semester ${reg.semester} Registration was rejected by $facultyName. Reason: $reason. Please update details and resubmit.",
+          timestamp: DateTime.now(),
+          type: "registration",
+        ),
+      );
+
+      // Update student's roster record
+      final rosterIdx = _classAttendanceRecords.indexWhere((s) => s.studentId == reg.studentId);
+      if (rosterIdx != -1) {
+        _classAttendanceRecords[rosterIdx] = _classAttendanceRecords[rosterIdx].copyWith(registrationStatus: "Rejected");
+      }
+      notifyListeners();
+    }
+  }
+
+  void markNotificationAsRead(String notifId) {
+    final idx = _notifications.indexWhere((n) => n.id == notifId);
+    if (idx != -1) {
+      _notifications[idx] = _notifications[idx].copyWith(isRead: true);
+      notifyListeners();
+    }
+  }
+
+  void markAllNotificationsAsRead() {
+    _notifications = _notifications.map((n) => n.copyWith(isRead: true)).toList();
+    notifyListeners();
+  }
+
+  void addNotification(CampusNotificationItem notif) {
+    _notifications.insert(0, notif);
     notifyListeners();
   }
 }

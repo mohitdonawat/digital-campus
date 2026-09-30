@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/custom_chip.dart';
+import '../../models/campus_models.dart';
 import '../../providers/campus_provider.dart';
+import '../../data/campus_database.dart';
 import '../study_assistant/vernacular_study_assistant_screen.dart';
 import '../ai_assistant/ai_voice_assistant_screen.dart';
 import '../../core/services/document_download_service.dart';
@@ -17,6 +21,35 @@ class TimetableScreen extends StatefulWidget {
 
 class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  String _liveClassesFilter = "All"; // "All", "Live Now", "Scheduled", "Completed History"
+
+  // Live Class Real-Time Doubts & Chat State
+  final List<Map<String, dynamic>> _liveChatMessages = [
+    {
+      "sender": "Dr. Mohit Donawat",
+      "message": "Welcome everyone to today's hybrid smart lecture. Screen sharing and audio stream are live!",
+      "isFaculty": true,
+      "time": "Just now",
+    },
+    {
+      "sender": "Ananya Patel",
+      "message": "Sir, will the backpropagation derivation be asked in Mid-Sem 2?",
+      "isFaculty": false,
+      "time": "2m ago",
+    },
+    {
+      "sender": "Rahul Sharma (You)",
+      "message": "Sir, why do we use multivariate chain rule instead of direct derivative in deep networks?",
+      "isFaculty": false,
+      "time": "1m ago",
+    },
+    {
+      "sender": "Dr. Mohit Donawat",
+      "message": "Good question Rahul! Because weights are nested across multiple sequential non-linear layers.",
+      "isFaculty": true,
+      "time": "Just now",
+    },
+  ];
 
   @override
   void initState() {
@@ -30,10 +63,40 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
     super.dispose();
   }
 
+  // ── Meeting Launcher Helper (Jitsi, Meet, Zoom, Any Link) ───────────────
+  Future<void> _launchMeetingUrl(BuildContext context, String urlString) async {
+    try {
+      final uri = Uri.parse(urlString);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Launching video call: $urlString"),
+              backgroundColor: AppColors.primary,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Could not open meeting: $urlString"),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<CampusProvider>(context);
     final timetable = provider.timetable;
+    final role = provider.currentRole;
+    final isFaculty = role == UserRole.faculty || role == UserRole.admin;
 
     return Scaffold(
       backgroundColor: AppColors.bgLight,
@@ -42,20 +105,30 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textDark),
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               "Smart Timetable & Live Classes",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark),
             ),
             Text(
-              "Hybrid Classrooms • AI Lecture Notes • Live Streams",
-              style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+              isFaculty
+                  ? "Faculty Console • Schedule Class • Jitsi/Meet/Zoom"
+                  : "Hybrid Classrooms • AI Lecture Notes • Live Streams",
+              style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
             ),
           ],
         ),
+        actions: [
+          if (isFaculty)
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary, size: 22),
+              tooltip: "Go Live / Schedule Class",
+              onPressed: () => _showScheduleOrGoLiveDialog(context, provider),
+            ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
@@ -64,41 +137,657 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
           unselectedLabelColor: AppColors.textMuted,
           labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
           tabs: const [
-            Tab(icon: Icon(Icons.live_tv_rounded, size: 16), text: "Live & Today"),
+            Tab(icon: Icon(Icons.live_tv_rounded, size: 16), text: "Live & History"),
+            Tab(icon: Icon(Icons.calendar_today_rounded, size: 16), text: "Today's Schedule"),
             Tab(icon: Icon(Icons.calendar_month_rounded, size: 16), text: "Weekly Master"),
-            Tab(icon: Icon(Icons.video_library_rounded, size: 16), text: "AI Recordings"),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          // ── Tab 1: Live Classroom & Today's Schedule ──
-          _buildLiveAndTodayTab(context, timetable),
+          // ── Tab 1: Live, Scheduled & History Classes ──
+          _buildLiveClassesSuiteTab(context, provider, isFaculty),
 
-          // ── Tab 2: Weekly Master Timetable ──
-          _buildWeeklyMasterTab(context),
+          // ── Tab 2: Today's Class Schedule (Timetable) ──
+          _buildTodayTimetableTab(context, provider, timetable, isFaculty),
 
-          // ── Tab 3: Recorded Lectures & AI Summaries ──
-          _buildRecordedLecturesTab(context),
+          // ── Tab 3: Weekly Master Timetable ──
+          _buildWeeklyMasterTab(context, provider, isFaculty),
         ],
       ),
+      floatingActionButton: isFaculty
+          ? FloatingActionButton.extended(
+              onPressed: () => _showScheduleOrGoLiveDialog(context, provider),
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.video_call_rounded, color: Colors.white),
+              label: const Text("Go Live / Schedule", style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+            )
+          : null,
     );
   }
 
-  // ── Tab 1: Live & Today ──────────────────────────────────────────────────
-  Widget _buildLiveAndTodayTab(BuildContext context, dynamic timetable) {
+  // ──────────────────────────────────────────────────────────────────────────
+  // Tab 1: Live Classes Suite (Live Now • Scheduled • Completed History)
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildLiveClassesSuiteTab(BuildContext context, CampusProvider provider, bool isFaculty) {
+    final allSessions = provider.liveClasses;
+    final liveSessions = allSessions.where((s) => s.status == LiveClassStatus.live).toList();
+    final scheduledSessions = allSessions.where((s) => s.status == LiveClassStatus.scheduled).toList();
+    final historySessions = allSessions.where((s) => s.status == LiveClassStatus.completed).toList();
+
+    List<LiveClassSession> displayList;
+    if (_liveClassesFilter == "Live Now") {
+      displayList = liveSessions;
+    } else if (_liveClassesFilter == "Scheduled") {
+      displayList = scheduledSessions;
+    } else if (_liveClassesFilter == "Completed History") {
+      displayList = historySessions;
+    } else {
+      displayList = allSessions;
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔴 PROMINENT LIVE CLASSROOM STREAM BANNER
-          _buildLiveStreamBanner(context),
+          // ── Top Faculty Action Banner ──────────────────────────────────
+          if (isFaculty)
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF2563EB).withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.cast_for_education_rounded, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Faculty Smart Class Studio",
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          "Host Jitsi, Google Meet, Zoom or any custom meeting link.",
+                          style: TextStyle(fontSize: 10.5, color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _showScheduleOrGoLiveDialog(context, provider),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                    ),
+                    child: const Text("+ Host Class", style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+                  ),
+                ],
+              ),
+            ),
 
-          const SizedBox(height: 18),
+          // ── Filter Chips Bar ───────────────────────────────────────────
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip("All", "All (${allSessions.length})", Icons.apps_rounded),
+                const SizedBox(width: 8),
+                _buildFilterChip("Live Now", "🔴 Live Now (${liveSessions.length})", Icons.sensors_rounded, isLive: true),
+                const SizedBox(width: 8),
+                _buildFilterChip("Scheduled", "⏳ Scheduled (${scheduledSessions.length})", Icons.schedule_rounded),
+                const SizedBox(width: 8),
+                _buildFilterChip("Completed History", "📜 History (${historySessions.length})", Icons.history_rounded),
+              ],
+            ),
+          ),
 
-          // Section Title
+          const SizedBox(height: 16),
+
+          // ── Live Stream Highlight (if any currently live) ──────────────
+          if (liveSessions.isNotEmpty && (_liveClassesFilter == "All" || _liveClassesFilter == "Live Now")) ...[
+            ...liveSessions.map((session) => _buildLiveSessionCard(context, provider, session, isFaculty)),
+            const SizedBox(height: 14),
+          ],
+
+          // ── Scheduled Classes Section ──────────────────────────────────
+          if (scheduledSessions.isNotEmpty && (_liveClassesFilter == "All" || _liveClassesFilter == "Scheduled")) ...[
+            if (_liveClassesFilter == "All") ...[
+              const Row(
+                children: [
+                  Icon(Icons.upcoming_rounded, size: 15, color: AppColors.primary),
+                  SizedBox(width: 6),
+                  Text(
+                    "SCHEDULED UPCOMING CLASSES",
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: AppColors.textDark),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ],
+            ...scheduledSessions.map((session) => _buildScheduledSessionCard(context, provider, session, isFaculty)),
+            const SizedBox(height: 14),
+          ],
+
+          // ── Completed / History Classes Section ────────────────────────
+          if (historySessions.isNotEmpty && (_liveClassesFilter == "All" || _liveClassesFilter == "Completed History")) ...[
+            if (_liveClassesFilter == "All") ...[
+              const Row(
+                children: [
+                  Icon(Icons.video_library_rounded, size: 15, color: Color(0xFF059669)),
+                  SizedBox(width: 6),
+                  Text(
+                    "LECTURE RECORDINGS & CLASS HISTORY",
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: AppColors.textDark),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ],
+            ...historySessions.map((session) => _buildHistorySessionCard(context, session)),
+          ],
+
+          if (displayList.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(32),
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  const Icon(Icons.event_busy_rounded, size: 40, color: AppColors.textMuted),
+                  const SizedBox(height: 8),
+                  Text("No $_liveClassesFilter classes found", style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String filterKey, String label, IconData icon, {bool isLive = false}) {
+    final isSelected = _liveClassesFilter == filterKey;
+    return InkWell(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _liveClassesFilter = filterKey);
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isLive ? const Color(0xFFFEF2F2) : AppColors.primary.withOpacity(0.12))
+              : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected
+                ? (isLive ? AppColors.error : AppColors.primary)
+                : AppColors.borderLight,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 13,
+              color: isSelected
+                  ? (isLive ? AppColors.error : AppColors.primary)
+                  : AppColors.textMuted,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected
+                    ? (isLive ? AppColors.error : AppColors.primary)
+                    : AppColors.textDark,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Live Session Card (Active 🔴) ───────────────────────────────────────
+  Widget _buildLiveSessionCard(
+      BuildContext context, CampusProvider provider, LiveClassSession session, bool isFaculty) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E1B4B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF6366F1), width: 1.4),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6366F1).withOpacity(0.25),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Bar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.04),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+              border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.08))),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: AppColors.error,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      "LIVE NOW",
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
+                        color: AppColors.error,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        session.platform.displayName,
+                        style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.people_alt_rounded, size: 11, color: AppColors.success),
+                      const SizedBox(width: 4),
+                      Text("${session.attendeesCount} Present", style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.success)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Main Info
+          Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${session.title} (${session.subjectCode})",
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  "Topic: ${session.topic}",
+                  style: const TextStyle(fontSize: 12, color: Color(0xFFC7D2FE), fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Instructor: ${session.instructorName} • Room: ${session.room}",
+                  style: const TextStyle(fontSize: 10.5, color: Colors.white60),
+                ),
+
+                const SizedBox(height: 14),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    // 1. Launch in Jitsi / Google Meet / Zoom Directly
+                    Expanded(
+                      flex: 3,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          HapticFeedback.heavyImpact();
+                          _launchMeetingUrl(context, session.meetingUrl);
+                        },
+                        icon: const Icon(Icons.open_in_browser_rounded, size: 15, color: Colors.white),
+                        label: Text(
+                          "Join on ${session.platform.shortName}",
+                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4F46E5),
+                          padding: const EdgeInsets.symmetric(vertical: 9),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // 2. Open In-App Smart Class Room (with chat, doubts, attendance)
+                    Expanded(
+                      flex: 2,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          _showLiveClassModal(context, session, isFaculty);
+                        },
+                        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Color(0xFF818CF8)),
+                        label: const Text(
+                          "Class Chat",
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF818CF8)),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF6366F1)),
+                          padding: const EdgeInsets.symmetric(vertical: 9),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                        ),
+                      ),
+                    ),
+
+                    // 3. Faculty End Class Option
+                    if (isFaculty) ...[
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          provider.endLiveClass(session.id);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Class Ended & Successfully archived to History with AI Notes!"),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+                        },
+                        tooltip: "End Class & Save to History",
+                        icon: const Icon(Icons.stop_circle_rounded, color: AppColors.error, size: 24),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Scheduled Session Card (⏳ Upcoming) ──────────────────────────────────
+  Widget _buildScheduledSessionCard(
+      BuildContext context, CampusProvider provider, LiveClassSession session, bool isFaculty) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderLight, width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.schedule_rounded, size: 14, color: AppColors.primary),
+                  const SizedBox(width: 5),
+                  Text(
+                    session.durationText,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.primary),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceSubtle,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Text(
+                  session.platform.displayName,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "${session.title} (${session.subjectCode})",
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark),
+          ),
+          const SizedBox(height: 2),
+          Text("Topic: ${session.topic}", style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+          const SizedBox(height: 3),
+          Text("Faculty: ${session.instructorName} • ${session.room}", style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+
+          const SizedBox(height: 10),
+
+          Row(
+            children: [
+              if (isFaculty)
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      HapticFeedback.heavyImpact();
+                      provider.startLiveClass(session.id);
+                      _launchMeetingUrl(context, session.meetingUrl);
+                    },
+                    icon: const Icon(Icons.sensors_rounded, size: 14, color: Colors.white),
+                    label: const Text("Start Class Now", style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Colors.white)),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, elevation: 0),
+                  ),
+                )
+              else
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Class link: ${session.meetingUrl}"),
+                          action: SnackBarAction(label: "Open", onPressed: () => _launchMeetingUrl(context, session.meetingUrl)),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.link_rounded, size: 14, color: AppColors.primary),
+                    label: const Text("View Meeting Link", style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                    style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.borderLight)),
+                  ),
+                ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () => _launchMeetingUrl(context, session.meetingUrl),
+                tooltip: "Open Link",
+                icon: const Icon(Icons.open_in_new_rounded, size: 18, color: AppColors.primary),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Completed / History Session Card (📜 Past) ──────────────────────────
+  Widget _buildHistorySessionCard(BuildContext context, LiveClassSession session) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderLight, width: 1.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: const Text("COMPLETED", style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: Color(0xFF047857))),
+              ),
+              Text("${session.attendeesCount} Students attended", style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textMuted)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "${session.title} (${session.subjectCode})",
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark),
+          ),
+          const SizedBox(height: 2),
+          Text("Topic: ${session.topic}", style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary)),
+          const SizedBox(height: 3),
+          Text("Instructor: ${session.instructorName}", style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+
+          if (session.aiSummary != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSubtle,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.borderLight),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.auto_awesome_rounded, size: 12, color: AppColors.primary),
+                      SizedBox(width: 4),
+                      Text("AI GENERATED LECTURE RECAP", style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(session.aiSummary!, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3)),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    _showLiveClassModal(context, session, false);
+                  },
+                  icon: const Icon(Icons.play_circle_outline_rounded, size: 14, color: Colors.white),
+                  label: const Text("Watch Recording", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, elevation: 0),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  _showAiLectureNotesModal(context);
+                },
+                icon: const Icon(Icons.description_rounded, size: 14, color: AppColors.primary),
+                label: const Text("Lecture Notes", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.borderLight)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Tab 2: Today's Class Schedule (Timetable)
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildTodayTimetableTab(
+      BuildContext context, CampusProvider provider, List<TimetablePeriod> timetable, bool isFaculty) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section Title & Faculty Timetable Controls
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -107,27 +796,70 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
                   Icon(Icons.schedule_rounded, color: AppColors.primary, size: 16),
                   SizedBox(width: 6),
                   Text(
-                    "TODAY'S LECTURE SESSIONS",
+                    "TODAY'S SCHEDULE",
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.8, color: AppColors.textDark),
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              if (isFaculty)
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: () => _showUploadTimetableModal(context, provider),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFECFDF5),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFA7F3D0)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.upload_file_rounded, size: 12, color: Color(0xFF047857)),
+                            SizedBox(width: 4),
+                            Text("Upload", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFF047857))),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    InkWell(
+                      onTap: () => _showAddPeriodModal(context, provider),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.add_rounded, size: 13, color: AppColors.primary),
+                            SizedBox(width: 3),
+                            Text("+ Add Slot", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                  ),
+                  child: Text("${timetable.length} Periods • Sec A", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.primary)),
                 ),
-                child: const Text("5 Periods • Section A", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.primary)),
-              ),
             ],
           ),
 
           const SizedBox(height: 12),
 
           // Periods List
-          ...timetable.map((period) => _buildPeriodCard(context, period)),
+          ...timetable.map((period) => _buildPeriodCard(context, provider, period, isFaculty)),
 
           const SizedBox(height: 14),
 
@@ -145,7 +877,7 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    "Real-time Faculty Substitution syncs automatically across student app, attendance register, and digital notice board.",
+                    "Dynamic timetable instantly updates across student mobile apps, attendance register, and smart digital notice boards.",
                     style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.3),
                   ),
                 ),
@@ -158,182 +890,8 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
     );
   }
 
-  // ── Live Streaming Classroom Banner ─────────────────────────────────────
-  Widget _buildLiveStreamBanner(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E1B4B), Color(0xFF0F172A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF6366F1), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.2),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with pulsating live tag
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-              border: Border(bottom: BorderSide(color: AppColors.borderDark.withOpacity(0.5))),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 9,
-                      height: 9,
-                      decoration: const BoxDecoration(
-                        color: AppColors.error,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Text(
-                      "LIVE SMART CLASSROOM IN SESSION",
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                        color: AppColors.error,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.people_alt_rounded, size: 11, color: AppColors.success),
-                      SizedBox(width: 4),
-                      Text("38 Present", style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.success)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Main Class Info
-          Padding(
-            padding: const EdgeInsets.all(14.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF818CF8).withOpacity(0.4)),
-                      ),
-                      child: const Icon(Icons.sensors_rounded, color: Color(0xFF818CF8), size: 26),
-                    ),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Machine Learning & AI (CS-601)",
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            "Topic: Backpropagation Gradient & Multivariate Chain Rule",
-                            style: TextStyle(fontSize: 11.5, color: Color(0xFFC7D2FE), fontWeight: FontWeight.w500),
-                          ),
-                          SizedBox(height: 3),
-                          Text(
-                            "Instructor: Dr. Mohit Donawat • Room: LH-302 (Hybrid Stream)",
-                            style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 14),
-
-                // Action Buttons: Join Stream, AI Notes, Ask Doubt
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          HapticFeedback.heavyImpact();
-                          _showLiveClassModal(context, "Machine Learning & AI", "Dr. Mohit Donawat");
-                        },
-                        icon: const Icon(Icons.play_circle_fill_rounded, size: 16, color: Colors.white),
-                        label: const Text(
-                          "Join Live Stream",
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4F46E5),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          elevation: 0,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 2,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          HapticFeedback.lightImpact();
-                          _showAiLectureNotesModal(context);
-                        },
-                        icon: const Icon(Icons.auto_awesome_rounded, size: 14, color: AppColors.accent),
-                        label: const Text(
-                          "AI Notes",
-                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.accent),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.borderDark),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ── Period Card ─────────────────────────────────────────────────────────
-  Widget _buildPeriodCard(BuildContext context, dynamic period) {
-    final isLive = period.subjectCode == "CS-601";
-
+  Widget _buildPeriodCard(BuildContext context, CampusProvider provider, TimetablePeriod period, bool isFaculty) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -341,10 +899,8 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: period.isSubstitute
-              ? AppColors.warning
-              : (isLive ? AppColors.primary : AppColors.borderLight),
-          width: period.isSubstitute || isLive ? 1.5 : 1.0,
+          color: period.isSubstitute ? AppColors.warning : AppColors.borderLight,
+          width: period.isSubstitute ? 1.5 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
@@ -362,36 +918,16 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
             children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.schedule_rounded,
-                    size: 14,
-                    color: isLive ? AppColors.primary : AppColors.accent,
-                  ),
+                  const Icon(Icons.schedule_rounded, size: 14, color: AppColors.primary),
                   const SizedBox(width: 6),
                   Text(
                     "${period.startTime} - ${period.endTime}",
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w800,
-                      color: isLive ? AppColors.primary : AppColors.accent,
-                    ),
+                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.primary),
                   ),
                 ],
               ),
               Row(
                 children: [
-                  if (isLive) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: AppColors.error, width: 0.8),
-                      ),
-                      child: const Text("🔴 LIVE NOW", style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: AppColors.error)),
-                    ),
-                    const SizedBox(width: 6),
-                  ],
                   if (period.isSubstitute)
                     const CustomChip(label: "SUBSTITUTE", color: AppColors.warning, isSolid: true)
                   else
@@ -407,6 +943,29 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
                         style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppColors.primary),
                       ),
                     ),
+                  if (isFaculty) ...[
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 16, color: AppColors.primary),
+                      tooltip: "Edit slot",
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => _showEditPeriodModal(context, provider, period),
+                    ),
+                    const SizedBox(width: 6),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
+                      tooltip: "Remove slot",
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        provider.deleteTimetablePeriod(period.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Period removed from today's timetable"), duration: Duration(seconds: 1)),
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -437,7 +996,7 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      "Faculty Substitution: ${period.substituteReason ?? 'Medical leave'}. Regular: ${period.originalFacultyName}.",
+                      "Faculty Substitution: ${period.substituteReason ?? 'Leave'}. Regular: ${period.originalFacultyName}.",
                       style: const TextStyle(fontSize: 11, color: AppColors.warning, fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -445,118 +1004,95 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
               ),
             ),
           ],
-
-          const SizedBox(height: 10),
-
-          // Period Action Buttons
-          Row(
-            children: [
-              InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  _showAiLectureNotesModal(context);
-                },
-                borderRadius: BorderRadius.circular(6),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceSubtle,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.borderLight),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.notes_rounded, size: 12, color: AppColors.primary),
-                      SizedBox(width: 4),
-                      Text("Lecture Notes", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.primary)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const VernacularStudyAssistantScreen()),
-                  );
-                },
-                borderRadius: BorderRadius.circular(6),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFFA7F3D0)),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.translate_rounded, size: 12, color: AppColors.success),
-                      SizedBox(width: 4),
-                      Text("Hindi/Audio Tutor", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.success)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 
-  // ── Tab 2: Weekly Master Timetable ──────────────────────────────────────
-  Widget _buildWeeklyMasterTab(BuildContext context) {
+  // ──────────────────────────────────────────────────────────────────────────
+  // Tab 3: Weekly Master Timetable
+  // ──────────────────────────────────────────────────────────────────────────
+  Widget _buildWeeklyMasterTab(BuildContext context, CampusProvider provider, bool isFaculty) {
     final days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: days.length,
-      itemBuilder: (context, index) {
-        final day = days[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.borderLight, width: 1.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+      children: [
+        if (isFaculty)
+          Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Master Timetable ERP", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                    Text("Sync or upload semester schedules", style: TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => _showUploadTimetableModal(context, provider),
+                  icon: const Icon(Icons.upload_file_rounded, size: 14, color: Colors.white),
+                  label: const Text("Upload Timetable", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, elevation: 0),
+                ),
+              ],
+            ),
           ),
-          child: ExpansionTile(
-            initiallyExpanded: index == 0,
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(8),
+
+        ...days.asMap().entries.map((entry) {
+          final index = entry.key;
+          final day = entry.value;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.borderLight, width: 1.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ExpansionTile(
+              initiallyExpanded: index == 0,
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.event_note_rounded, color: AppColors.primary, size: 18),
               ),
-              child: const Icon(Icons.event_note_rounded, color: AppColors.primary, size: 18),
+              title: Text(
+                day,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark),
+              ),
+              subtitle: Text(
+                index == 0 ? "5 Classes (Current Day Schedule)" : "5 Scheduled Lectures & Labs",
+                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+              ),
+              childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              children: [
+                _buildMiniScheduleRow("09:30 - 10:30", "Machine Learning & AI", "LH-302", "Dr. Mohit Donawat"),
+                _buildMiniScheduleRow("10:30 - 11:30", "Computer Networks", "LH-302", "Prof. Vikram Sen"),
+                _buildMiniScheduleRow("11:45 - 01:15", "DevOps & Cloud Lab", "Lab 3", "Prof. Ankit Saxena"),
+                _buildMiniScheduleRow("02:00 - 03:00", "Compiler Design", "LH-302", "Dr. S.K. Rathore"),
+                _buildMiniScheduleRow("03:00 - 04:30", "Project & Doubt Mentorship", "Inno Lab", "Dr. Mohit Donawat"),
+              ],
             ),
-            title: Text(
-              day,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark),
-            ),
-            subtitle: Text(
-              index == 0 ? "5 Classes (Current Day)" : "5 Scheduled Lectures & Practical Labs",
-              style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-            ),
-            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            children: [
-              _buildMiniScheduleRow("09:30 - 10:30", "Machine Learning & AI", "LH-302", "Dr. Mohit Donawat"),
-              _buildMiniScheduleRow("10:30 - 11:30", "Computer Networks", "LH-302", "Prof. Vikram Sen"),
-              _buildMiniScheduleRow("11:45 - 01:15", "DevOps & Cloud Lab", "Lab 3", "Prof. Ankit Saxena"),
-              _buildMiniScheduleRow("02:00 - 03:00", "Compiler Design", "LH-302", "Dr. S.K. Rathore"),
-              _buildMiniScheduleRow("03:00 - 04:30", "Project & Doubt Mentorship", "Inno Lab", "Dr. Mohit Donawat"),
-            ],
-          ),
-        );
-      },
+          );
+        }),
+      ],
     );
   }
 
@@ -578,302 +1114,765 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
     );
   }
 
-  // ── Tab 3: Recorded Lectures & AI Summaries ─────────────────────────────
-  Widget _buildRecordedLecturesTab(BuildContext context) {
-    final recordings = [
-      {
-        "title": "CS-601: Backpropagation & Neural Network Optimizers",
-        "date": "Yesterday • 54 mins",
-        "instructor": "Dr. Mohit Donawat",
-        "views": "42 Students watched",
-        "aiSummary": "Key concepts: Forward pass, Cross-entropy loss, Backward pass via chain rule, Adam vs SGD optimizer comparison.",
-      },
-      {
-        "title": "CS-602: TCP Congestion Control & Windowing Mechanism",
-        "date": "23 Sep • 48 mins",
-        "instructor": "Prof. Priya Verma",
-        "views": "39 Students watched",
-        "aiSummary": "Key concepts: Slow start threshold, Tahoe vs Reno fast retransmit, Three-way handshake sequence.",
-      },
-      {
-        "title": "CS-604: LR(1) Bottom-Up Parsing & Shift-Reduce Conflicts",
-        "date": "21 Sep • 58 mins",
-        "instructor": "Dr. S.K. Rathore",
-        "views": "45 Students watched",
-        "aiSummary": "Key concepts: Canonical collections of LR(1) items, Lookahead calculation, Handle pruning technique.",
-      },
-    ];
+  // ──────────────────────────────────────────────────────────────────────────
+  // Dialog: Faculty Go Live or Schedule Class (Jitsi / Meet / Zoom / Any Link)
+  // ──────────────────────────────────────────────────────────────────────────
+  void _showScheduleOrGoLiveDialog(BuildContext context, CampusProvider provider) {
+    final titleController = TextEditingController(text: "Cloud Architecture & DevOps");
+    final codeController = TextEditingController(text: "CS-603");
+    final topicController = TextEditingController(text: "Kubernetes Cluster Auto-scaling & Ingress Controller");
+    final roomController = TextEditingController(text: "LH-302 (Smart Studio)");
+    MeetingPlatform selectedPlatform = MeetingPlatform.jitsi;
+    final meetingUrlController = TextEditingController(
+      text: "https://meet.jit.si/DigitalCampus_CS603_${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}",
+    );
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: recordings.length,
-      itemBuilder: (context, index) {
-        final rec = recordings[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.borderLight, width: 1.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Mock Video Preview Box
-              Stack(
-                alignment: Alignment.center,
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          void updatePlatformUrl(MeetingPlatform p) {
+            selectedPlatform = p;
+            if (p == MeetingPlatform.jitsi) {
+              meetingUrlController.text =
+                  "https://meet.jit.si/DigitalCampus_${codeController.text.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '')}_${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}";
+            } else if (p == MeetingPlatform.googleMeet) {
+              meetingUrlController.text = "https://meet.google.com/dcs-live-lec";
+            } else if (p == MeetingPlatform.zoom) {
+              meetingUrlController.text = "https://zoom.us/j/84920194812";
+            } else {
+              meetingUrlController.text = "https://stream.digitalcampus.edu/live/session";
+            }
+            setModalState(() {});
+          }
+
+          return Container(
+            padding: EdgeInsets.only(
+              left: 18,
+              right: 18,
+              top: 18,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    height: 140,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                      gradient: LinearGradient(
-                        colors: [const Color(0xFF1E293B), Colors.black.withOpacity(0.8)],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.85),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.play_arrow_rounded, size: 32, color: Colors.white),
-                  ),
-                  Positioned(
-                    bottom: 8,
-                    right: 10,
+                  Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(4),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: AppColors.borderLight, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  const Row(
+                    children: [
+                      Icon(Icons.video_call_rounded, color: AppColors.primary, size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        "Host Live Class or Schedule",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark),
                       ),
-                      child: Text(
-                        rec["date"]!,
-                        style: const TextStyle(fontSize: 9.5, color: Colors.white, fontWeight: FontWeight.w600),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    "Connect via Jitsi (Free Instant Room), Google Meet, Zoom or any custom meeting link.",
+                    style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Subject Title
+                  TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: "Subject Name",
+                      prefixIcon: const Icon(Icons.menu_book_rounded, size: 18),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      isDense: true,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: codeController,
+                          decoration: InputDecoration(
+                            labelText: "Subject Code",
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                            isDense: true,
+                          ),
+                        ),
                       ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: roomController,
+                          decoration: InputDecoration(
+                            labelText: "Studio / Room",
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                            isDense: true,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Topic
+                  TextField(
+                    controller: topicController,
+                    decoration: InputDecoration(
+                      labelText: "Lecture Topic",
+                      prefixIcon: const Icon(Icons.topic_rounded, size: 18),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      isDense: true,
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Platform Selector
+                  const Text("Select Meeting Platform:", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                  const SizedBox(height: 8),
+
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: MeetingPlatform.values.map((platform) {
+                      final isSel = selectedPlatform == platform;
+                      return ChoiceChip(
+                        label: Text(platform.displayName),
+                        selected: isSel,
+                        onSelected: (_) => updatePlatformUrl(platform),
+                        selectedColor: AppColors.primary,
+                        labelStyle: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: isSel ? Colors.white : AppColors.textDark,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Meeting URL Field
+                  TextField(
+                    controller: meetingUrlController,
+                    decoration: InputDecoration(
+                      labelText: "Meeting Link (Approved for Direct Launch)",
+                      prefixIcon: const Icon(Icons.link_rounded, size: 18, color: AppColors.primary),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.refresh_rounded, size: 18),
+                        onPressed: () => updatePlatformUrl(selectedPlatform),
+                        tooltip: "Regenerate unique room link",
+                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      isDense: true,
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  // Action Buttons: Go Live Now VS Schedule Later
+                  Row(
+                    children: [
+                      // Schedule Later
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            final newSession = LiveClassSession(
+                              id: "LIVE-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}",
+                              title: titleController.text,
+                              subjectCode: codeController.text,
+                              instructorName: provider.currentProfile?.name ?? "Dr. Mohit Donawat",
+                              topic: topicController.text,
+                              room: roomController.text,
+                              scheduledAt: DateTime.now().add(const Duration(hours: 1)),
+                              durationText: "Starts in 1 hour",
+                              status: LiveClassStatus.scheduled,
+                              platform: selectedPlatform,
+                              meetingUrl: meetingUrlController.text,
+                            );
+                            provider.scheduleLiveClass(newSession);
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Live Lecture Scheduled! Notified all enrolled students."),
+                                backgroundColor: AppColors.primary,
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.schedule_rounded, size: 16),
+                          label: const Text("Schedule Later"),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      // Go Live Now
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            final newSession = LiveClassSession(
+                              id: "LIVE-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}",
+                              title: titleController.text,
+                              subjectCode: codeController.text,
+                              instructorName: provider.currentProfile?.name ?? "Dr. Mohit Donawat",
+                              topic: topicController.text,
+                              room: roomController.text,
+                              scheduledAt: DateTime.now(),
+                              durationText: "Live Stream Active",
+                              status: LiveClassStatus.live,
+                              platform: selectedPlatform,
+                              meetingUrl: meetingUrlController.text,
+                              attendeesCount: 1,
+                            );
+                            provider.scheduleLiveClass(newSession);
+                            Navigator.pop(ctx);
+                            _launchMeetingUrl(context, newSession.meetingUrl);
+                          },
+                          icon: const Icon(Icons.sensors_rounded, size: 16, color: Colors.white),
+                          label: const Text("Go Live Now", style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.error,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Dialog: Add Timetable Slot Modal
+  // ──────────────────────────────────────────────────────────────────────────
+  void _showAddPeriodModal(BuildContext context, CampusProvider provider) {
+    final subController = TextEditingController();
+    final codeController = TextEditingController();
+    final roomController = TextEditingController(text: "LH-302");
+    final facController = TextEditingController(text: provider.currentProfile?.name ?? "Dr. Mohit Donawat");
+    final startController = TextEditingController(text: "09:30 AM");
+    final endController = TextEditingController(text: "10:30 AM");
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.add_circle_outline_rounded, color: AppColors.primary, size: 20),
+            SizedBox(width: 8),
+            Text("Add Timetable Period", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: subController,
+                decoration: const InputDecoration(labelText: "Subject Name (e.g. Distributed Systems)", isDense: true),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: codeController,
+                      decoration: const InputDecoration(labelText: "Subject Code", isDense: true),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: roomController,
+                      decoration: const InputDecoration(labelText: "Room / Lab", isDense: true),
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: facController,
+                decoration: const InputDecoration(labelText: "Faculty Name", isDense: true),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: startController,
+                      decoration: const InputDecoration(labelText: "Start Time", isDense: true),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: endController,
+                      decoration: const InputDecoration(labelText: "End Time", isDense: true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () {
+              if (subController.text.isNotEmpty) {
+                final newPeriod = TimetablePeriod(
+                  id: "TT-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}",
+                  day: "Today",
+                  startTime: startController.text,
+                  endTime: endController.text,
+                  subjectName: subController.text,
+                  subjectCode: codeController.text.isEmpty ? "CS-XXX" : codeController.text,
+                  roomNumber: roomController.text,
+                  facultyName: facController.text,
+                );
+                provider.addTimetablePeriod(newPeriod);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("New slot added to Timetable!"), backgroundColor: AppColors.success),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text("Save Slot", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
 
-              // Lecture Details
-              Padding(
-                padding: const EdgeInsets.all(14.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+  // ──────────────────────────────────────────────────────────────────────────
+  // Dialog: Edit Timetable Slot Modal (Faculty Only)
+  // ──────────────────────────────────────────────────────────────────────────
+  void _showEditPeriodModal(BuildContext context, CampusProvider provider, TimetablePeriod period) {
+    final subController = TextEditingController(text: period.subjectName);
+    final codeController = TextEditingController(text: period.subjectCode);
+    final roomController = TextEditingController(text: period.roomNumber);
+    final facController = TextEditingController(text: period.facultyName);
+    final startController = TextEditingController(text: period.startTime);
+    final endController = TextEditingController(text: period.endTime);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.edit_note_rounded, color: AppColors.primary, size: 22),
+            SizedBox(width: 8),
+            Text("Edit Timetable Period", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: subController,
+                decoration: const InputDecoration(labelText: "Subject Name", isDense: true),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: codeController,
+                      decoration: const InputDecoration(labelText: "Subject Code", isDense: true),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: roomController,
+                      decoration: const InputDecoration(labelText: "Room / Lab", isDense: true),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: facController,
+                decoration: const InputDecoration(labelText: "Faculty Name", isDense: true),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: startController,
+                      decoration: const InputDecoration(labelText: "Start Time", isDense: true),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: endController,
+                      decoration: const InputDecoration(labelText: "End Time", isDense: true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () {
+              if (subController.text.isNotEmpty) {
+                final updated = TimetablePeriod(
+                  id: period.id,
+                  day: period.day,
+                  startTime: startController.text,
+                  endTime: endController.text,
+                  subjectName: subController.text,
+                  subjectCode: codeController.text,
+                  roomNumber: roomController.text,
+                  facultyName: facController.text,
+                  isSubstitute: period.isSubstitute,
+                  originalFacultyName: period.originalFacultyName,
+                  substituteReason: period.substituteReason,
+                );
+                provider.updateTimetablePeriod(updated);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Timetable period updated successfully!"), backgroundColor: AppColors.success),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text("Save Changes", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Dialog: Upload / Parse Timetable
+  // ──────────────────────────────────────────────────────────────────────────
+  void _showUploadTimetableModal(BuildContext context, CampusProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.upload_file_rounded, color: AppColors.primary, size: 22),
+                SizedBox(width: 8),
+                Text("Upload & Auto-Parse Timetable", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              "Upload an image, PDF or CSV schedule. The sovereign ERP engine parses slots into active timetable records.",
+              style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+            ),
+            const SizedBox(height: 18),
+
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.table_chart_rounded, color: AppColors.primary),
+              ),
+              title: const Text("Load Department Master Template (CSE Sem 6)", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              subtitle: const Text("Applies 5 official accredited syllabus slots with room allocations.", style: TextStyle(fontSize: 10.5)),
+              onTap: () {
+                provider.uploadTimetable(CampusDatabase.todayTimetable);
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Official Master Timetable loaded successfully!"), backgroundColor: AppColors.success),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: const Color(0xFFECFDF5), borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.description_rounded, color: Color(0xFF047857)),
+              ),
+              title: const Text("Upload Document / Spreadsheet File", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              subtitle: const Text("Parses CSV, Excel or AI OCR extracted class timetable.", style: TextStyle(fontSize: 10.5)),
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Timetable document parsed and synchronized with Academic Register!"),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Live Stream Player & Interactive Doubts Modal
+  // ──────────────────────────────────────────────────────────────────────────
+  void _showLiveClassModal(BuildContext context, LiveClassSession session, bool isFaculty) {
+    final chatInputController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) => Container(
+          height: MediaQuery.of(context).size.height * 0.88,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(color: AppColors.borderLight, borderRadius: BorderRadius.circular(2)),
+              ),
+
+              // Video Player Header with Direct Meeting Link
+              Container(
+                height: 210,
+                width: double.infinity,
+                color: const Color(0xFF0B1120),
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    Text(
-                      rec["title"]!,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textDark),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      "Instructor: ${rec["instructor"]} • ${rec["views"]}",
-                      style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // AI Generated Summary Box
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceSubtle,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.borderLight, width: 1.0),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.auto_awesome_rounded, size: 13, color: AppColors.primary),
-                              SizedBox(width: 5),
-                              Text("AI GENERATED LECTURE SUMMARY", style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.primary)),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            rec["aiSummary"]!,
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.35),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Action buttons
-                    Row(
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              HapticFeedback.lightImpact();
-                              _showLiveClassModal(context, rec["title"]!, rec["instructor"]!);
-                            },
-                            icon: const Icon(Icons.play_circle_outline_rounded, size: 15, color: Colors.white),
-                            label: const Text("Watch Lecture", style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.white)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              padding: const EdgeInsets.symmetric(vertical: 9),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6366F1).withOpacity(0.2),
+                            shape: BoxShape.circle,
                           ),
+                          child: const Icon(Icons.sensors_rounded, size: 36, color: Color(0xFF818CF8)),
                         ),
-                        const SizedBox(width: 8),
-                        OutlinedButton.icon(
+                        const SizedBox(height: 8),
+                        Text(
+                          session.status == LiveClassStatus.live
+                              ? "Live Smart Class Stream Active"
+                              : "Lecture Recording Archive",
+                          style: const TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          "Platform: ${session.platform.displayName}",
+                          style: const TextStyle(color: Colors.white60, fontSize: 10.5),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Direct Launch Meeting Button
+                        ElevatedButton.icon(
                           onPressed: () {
-                            HapticFeedback.lightImpact();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const VernacularStudyAssistantScreen()),
-                            );
+                            _launchMeetingUrl(context, session.meetingUrl);
                           },
-                          icon: const Icon(Icons.translate_rounded, size: 14, color: AppColors.success),
-                          label: const Text("Audio Hindi", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.success)),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFA7F3D0)),
-                            backgroundColor: const Color(0xFFECFDF5),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          icon: const Icon(Icons.open_in_browser_rounded, size: 14, color: Colors.white),
+                          label: Text(
+                            "Open Video on ${session.platform.shortName}",
+                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4F46E5),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            elevation: 0,
                           ),
                         ),
                       ],
+                    ),
+
+                    Positioned(
+                      top: 10,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: session.status == LiveClassStatus.live ? AppColors.error : const Color(0xFF059669),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          session.status == LiveClassStatus.live ? "🔴 LIVE STREAM" : "📹 RECORDING",
+                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Class Information Bar
+              Padding(
+                padding: const EdgeInsets.all(14.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(session.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                          const SizedBox(height: 1),
+                          Text("Instructor: ${session.instructorName} • ${session.room}", style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                        ],
+                      ),
+                    ),
+                    if (isFaculty)
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Provider.of<CampusProvider>(context, listen: false).endLiveClass(session.id);
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Live Lecture ended and saved to History!"), backgroundColor: AppColors.success),
+                          );
+                        },
+                        icon: const Icon(Icons.stop_circle_rounded, size: 14, color: Colors.white),
+                        label: const Text("End Class", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, elevation: 0),
+                      )
+                    else
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Biometric Digital Attendance marked for this lecture!"), backgroundColor: AppColors.success),
+                          );
+                        },
+                        icon: const Icon(Icons.check_circle_rounded, size: 14, color: Colors.white),
+                        label: const Text("Mark Attendance", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, elevation: 0),
+                      ),
+                  ],
+                ),
+              ),
+
+              const Divider(color: AppColors.borderLight, height: 1),
+
+              // Live Class Q&A and Doubts Header
+              const Padding(
+                padding: EdgeInsets.fromLTRB(14, 8, 14, 4),
+                child: Row(
+                  children: [
+                    Icon(Icons.chat_bubble_outline_rounded, size: 14, color: AppColors.primary),
+                    SizedBox(width: 6),
+                    Text("LIVE CLASS CHAT & DOUBTS", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                  ],
+                ),
+              ),
+
+              // Chat Messages List
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  itemCount: _liveChatMessages.length,
+                  itemBuilder: (context, idx) {
+                    final item = _liveChatMessages[idx];
+                    return _chatBubble(item["sender"], item["message"], item["isFaculty"]);
+                  },
+                ),
+              ),
+
+              // Live Doubts Input Field
+              Container(
+                padding: EdgeInsets.only(
+                  left: 14,
+                  right: 14,
+                  top: 8,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 10,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: AppColors.borderLight)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: chatInputController,
+                        decoration: InputDecoration(
+                          hintText: "Type doubt or message to class...",
+                          hintStyle: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          filled: true,
+                          fillColor: AppColors.surfaceSubtle,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.send_rounded, color: AppColors.primary, size: 20),
+                      onPressed: () {
+                        if (chatInputController.text.trim().isNotEmpty) {
+                          final text = chatInputController.text.trim();
+                          setSheetState(() {
+                            _liveChatMessages.add({
+                              "sender": isFaculty ? "Prof. Mohit Donawat" : "Rahul Sharma (You)",
+                              "message": text,
+                              "isFaculty": isFaculty,
+                              "time": "Just now",
+                            });
+                          });
+                          chatInputController.clear();
+                        }
+                      },
                     ),
                   ],
                 ),
               ),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  // ── Live Stream Player Modal ─────────────────────────────────────────────
-  void _showLiveClassModal(BuildContext context, String subject, String instructor) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            // Handle bar
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(color: AppColors.borderLight, borderRadius: BorderRadius.circular(2)),
-            ),
-
-            // Video Player Mock
-            Container(
-              height: 200,
-              width: double.infinity,
-              color: Colors.black,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.live_tv_rounded, size: 40, color: AppColors.error),
-                        SizedBox(height: 8),
-                        Text("Live WebRTC Smart Class Stream", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
-                        Text("Low Latency 1080p • Audio Active", style: TextStyle(color: Colors.white54, fontSize: 10)),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    top: 10,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.error,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text("🔴 LIVE STREAM", style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Class Information
-            Padding(
-              padding: const EdgeInsets.all(14.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(subject, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-                        Text("Instructor: $instructor • LH-302", style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Biometric Digital Attendance marked for this lecture!"), backgroundColor: AppColors.success),
-                      );
-                    },
-                    icon: const Icon(Icons.check_circle_rounded, size: 14, color: Colors.white),
-                    label: const Text("Mark Attendance", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.success, elevation: 0),
-                  ),
-                ],
-              ),
-            ),
-
-            const Divider(color: AppColors.borderLight, height: 1),
-
-            // Live Class Q&A and Chat
-            const Padding(
-              padding: EdgeInsets.fromLTRB(14, 10, 14, 6),
-              child: Row(
-                children: [
-                  Icon(Icons.chat_bubble_outline_rounded, size: 14, color: AppColors.primary),
-                  SizedBox(width: 6),
-                  Text("LIVE CLASS CHAT & DOUBTS", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.primary)),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                children: [
-                  _chatBubble("Prof. Mohit Donawat", "Please look at the slide on Backprop gradient calculation.", true),
-                  _chatBubble("Ananya Patel", "Sir, will this derivation be asked in Mid-Sem 2?", false),
-                  _chatBubble("Rahul Sharma (You)", "Sir, why do we use Chain Rule instead of direct derivative?", false),
-                  _chatBubble("Prof. Mohit Donawat", "Good question Rahul! Because weights are nested within multiple activation layers.", true),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

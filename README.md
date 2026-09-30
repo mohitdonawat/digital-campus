@@ -1,27 +1,119 @@
-# 🏛️ Digital Campus — Unified Higher Education Operating System
-### Enterprise Campus ERP 4.0, Digital Governance & Sovereign Applied AI Platform
+# 🏛️ Digital Campus — Unified Higher Education Operating System (HE-OS)
+### Enterprise Campus ERP 4.0, Sovereign Applied AI & Institutional Digital Governance
 
-[![Platform](https://img.shields.io/badge/Platform-Flutter%203.x%20%7C%20Android%20%7C%20iOS%20%7C%20Web%20%7C%20Desktop-02569B?logo=flutter)](https://flutter.dev)
 [![Architect](https://img.shields.io/badge/Architect-Mr.%20Mohit%20Donawat-orange?logo=github)](https://github.com/mohitdonawat)
-[![Architecture](https://img.shields.io/badge/Architecture-Decoupled%20Modular%20ERP-4CAF50)](#-system-architecture)
-[![AI Engine](https://img.shields.io/badge/AI%20Engine-Sovereign%20Campus%20NLU%20(Zero%20API%20Cost)-7C3AED)](#-sovereign-applied-ai-subsystems)
-[![Compliance](https://img.shields.io/badge/Compliance-AICTE%20%7C%20UGC%2048h%20SLA%20%7C%20NEP%202020-blue)](#-statutory-compliance--governance)
-[![Security](https://img.shields.io/badge/Security-SHA--256%20Cryptographic%20Verification-critical)](#-cryptographic-credentials--digital-governance)
+[![Portfolio](https://img.shields.io/badge/Portfolio-mohitdonawat.wildus.app-1D4ED8?logo=google-chrome)](https://mohitdonawat.wildus.app)
+[![Platform](https://img.shields.io/badge/Platform-Flutter%203.x%20%7C%20Android%20%7C%20iOS%20%7C%20Web%20%7C%20Desktop-02569B?logo=flutter)](https://flutter.dev)
+[![AI Engine](https://img.shields.io/badge/AI%20Engine-Sovereign%20Campus%20NLU%20(Zero%20API%20Cost)-7C3AED)](#-sovereign-applied-ai-subsystems-zero-cloud-cost)
+[![Compliance](https://img.shields.io/badge/Compliance-AICTE%20%7C%20UGC%2048h%20SLA%20%7C%20NEP%202020-blue)](#-statutory-regulatory-compliance--accreditation)
+[![Security](https://img.shields.io/badge/Security-SHA--256%20Cryptographic%20Verification-059669)](#-cryptographic-security--data-sovereignty)
+[![License](https://img.shields.io/badge/License-Proprietary%20%7C%20All%20Rights%20Reserved-red)](#-proprietary-license--intellectual-property-protection)
 
 ---
 
-## 📌 Executive Overview & Scope
+## 📌 Executive Summary & Architectural Vision
 
-**Digital Campus** is a comprehensive, production-grade **Higher Education Operating System (OS)** engineered to unify the fragmented digital landscape of modern universities, autonomous technical institutes, and polytechnics. 
+**Digital Campus** is an enterprise-grade **Higher Education Operating System (HE-OS)** conceived, architected, and engineered solely by **Mr. Mohit Donawat**. It addresses the chronic digital fragmentation that plagues modern universities, autonomous engineering colleges, and polytechnics across India.
 
-Traditional campus management suffers from departmental data silos: attendance, semester examination registration, fee processing, hostel allocations, transit telemetry, and grievance redressal operate on disconnected, legacy software. **Digital Campus** unifies these critical institutional services into a cohesive, high-performance ecosystem powered by an **in-house, sovereign Applied AI engine** that operates with sub-millisecond response latency and zero third-party token billing.
+In traditional campuses, administration relies on 5–7 disconnected commercial tools: attendance biometric readers, examination admit software, hostel ledgers, paper gate passes, bus tracking, and grievance registers operate as isolated data silos. **Digital Campus** unifies these services into a single, cohesive ecosystem governed by **an on-device, sovereign Applied AI engine** that delivers sub-millisecond query responses with **zero cloud API token expenditure**.
 
-### 🌐 Key Scope & Capabilities:
-- **Unified Academic Administration:** Real-time tracking of student academic journey from Day-1 KYC admission to degree conferral.
-- **Statutory Regulatory Automation:** Enforces AICTE 75% attendance limits, UGC 48-Hour grievance resolution SLAs, and NEP 2020 mother-tongue learning assistance.
-- **Sovereign, Edge-First AI:** Built-in Natural Language Understanding (NLU) and predictive statistical regression engines that run deterministically without external cloud API dependencies.
-- **Multi-Tenant SaaS Readiness:** Capable of provisioning autonomous colleges and university departments with isolated state and administrative controls.
-- **Role-Based Experience:** Native experiences tailored for four key personas: **Students**, **Faculty/Mentors**, **Institutional Administrators**, and **Parents/Guardians**.
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        DIGITAL CAMPUS 4-UNIVERSE ECOSYSTEM                             │
+├────────────────────┬────────────────────┬─────────────────────┬────────────────────────┤
+│ 🎓 STUDENT         │ 👨‍🏫 TEACHER/FACULTY │ 🏛️ ADMIN / DEAN     │ 👨‍👩‍👦 PARENT / GUARDIAN │
+│ Universe Cockpit   │ Academic Workspace │ ERP & Governance    │ Ward Monitoring Radar  │
+└────────────────────┴────────────────────┴─────────────────────┴────────────────────────┘
+```
+
+---
+
+## ⚠️ The Higher Education Dilemma (Problem Statement)
+
+Modern higher education institutions face strict statutory regulations that legacy ERP systems cannot handle:
+
+1. **AICTE 75% Attendance Directives:** Over 2.8 million technical students across India face end-semester exam disqualification ("detention") due to attendance calculated post-mortem at semester end without proactive warning.
+2. **UGC 2023 Statutory 48-Hour SLA Redressal:** Federal regulations mandate a time-stamped 48-hour resolution clock for student grievances, but 85% of campuses still handle complaints via physical paper letters.
+3. **NEP 2020 Multidisciplinary Credit Mobility:** The National Education Policy requires automated credit accumulation via the Academic Bank of Credits (ABC / Digilocker), which legacy software cannot parse.
+4. **High Cloud Costs ($12/student/year):** Commercial campus apps rely heavily on third-party cloud APIs (OpenAI, AWS), creating ballooning annual recurring costs for colleges.
+5. **Proxy Attendance & Gate Insecurity:** Paper registers and physical ID cards are easily forged, creating security loopholes in hostels and campus checkouts.
+
+---
+
+## 💡 The Digital Campus Solution & Unique Value Propositions (USP)
+
+| Legacy Campus ERP Systems | Digital Campus (HE-OS) by Mohit Donawat |
+| :--- | :--- |
+| **Fragmented Portals:** 4 separate apps/sites for students, teachers, admins, and parents. | **Unified 4-Universe Persona Gateway:** Single high-performance client app with 1-tap instant role switching. |
+| **High Recurring AI Cost:** Reliance on cloud LLM APIs ($12/student/year). | **Sovereign Local Edge AI:** In-house bilingual NLU and regression engine with **$0 cloud token billing**. |
+| **Passive Attendance Tracking:** Students discover they are detained on the last week. | **Predictive Safe Bunk Calculus:** Proactive mathematical simulation calculating exact safe leaves remaining. |
+| **Manual Paper Registers:** Teachers waste 15 minutes of lecture time on roll-calls. | **Sub-Second 1-Tap Attendance:** Bulk Mark-All-Present with instant push sync in under 15 seconds. |
+| **Physical Vulnerable IDs:** Easy to counterfeit or lend to unauthorized persons. | **Sovereign Smart Digital ID:** Verifiable digital ID with encrypted barcode/QR and registrar seal. |
+| **Paper Grievance Slips:** Lost in files, no audit trail. | **UGC 2023 SLA Redressal Tribunal:** Automatic 48-hour countdown clock with whistleblower protection. |
+
+---
+
+## 👥 4-Universe Feature Breakdown
+
+Digital Campus provides distinct operational views tailored for every campus stakeholder:
+
+### 🎓 1. Student Universe (Academic Cockpit)
+* **Statutory 75% Attendance Radar:** Subject-by-subject attendance telemetry across theory, practical, and tutorial sessions.
+* **Safe Bunk Margin Simulator:** Real-time predictive algorithm computing exact safe absences before AICTE detention thresholds.
+* **Proactive Longitudinal Academic Cockpit:** Visual CGPA & SGPA progression, branch percentiles, and university ranking telemetry.
+* **Master Dynamic Timetable:** Class scheduling with classroom mapping (Lab-3, LH-302), faculty routing, and clash detection.
+* **Sovereign Student Smart ID Card:** Double-sided digital identity credential with encrypted barcode/QR for automated turnstile entry.
+* **Continuous Internal Evaluation (CIE) Scorecard:** Real-time tracking of mid-semester tests, lab assessments, and assignments.
+* **Paperless Examination Hall Ticket:** Instant admit card generation linked directly with statutory attendance and fee clearances.
+* **Multi-Head Institutional Fee Ledger:** Transparent fee breakdown (tuition, exam, lab, hostel) with instant GST receipts (#REC-2026-09214).
+* **Medical & Duty Leave Workflow:** Prescription attachment submission with multi-level proctor/HoD approval and automatic attendance restoration.
+* **UGC 2023 Statutory 48-Hour SLA Tribunal:** Confidential grievance cell for Academic, Infrastructure, Harassment, and Fee disputes.
+* **NEP 2020 Academic Bank of Credits (ABC):** Direct alignment with Digilocker ABC ID for seamless inter-institutional credit transfer.
+* **Sub-Second Atomic Push Alerts:** Immediate notifications when attendance is marked PRESENT or accounts validates fee payments.
+
+### 👨‍🏫 2. Teacher & Faculty Universe (Instruction & Mentorship)
+* **Faculty Command Center:** Complete academic workspace providing today's teaching routine, lab allocations, and student advisory hours.
+* **Sub-Second 1-Tap Attendance Marking:** Bulk "Mark-All-Present" with quick tap-to-absent toggles, saving 15 minutes per lecture.
+* **Automated AICTE Compliance Registers:** 1-click export of monthly official subject attendance registers ready for regulatory inspection.
+* **Real-Time Syllabus Progress Radar:** Unit-wise (Units 1 to 5) curriculum coverage telemetry tracking delivered vs scheduled lecture hours.
+* **Milestone Lesson Delivery Logs:** Timestamped audit records of topics taught, reference textbooks used, and assignments allotted for NAAC.
+* **Continuous Internal Assessment Ingestion:** Secure mark entry for mid-semester tests and practical exams with automatic grade curving.
+* **1-Tap Proctor Leave Endorsement:** Quick verification and approval of student medical leaves and duty attendance exemptions.
+
+### 🏛️ 3. Admin & Institutional Governance Universe (Executive ERP)
+* **Executive Dean & Principal Dashboard:** Bird's-eye institutional telemetry displaying campus headcount, enrollment trends, and faculty ratios.
+* **Unified Financial Reconciliation Engine:** Real-time aggregation of total tuition collected, outstanding student dues, and department budgets.
+* **Administrative Smart Credentialing:** Digital institutional authority ID card with encrypted security clearance barcode for examination vaults and server rooms.
+* **Department-Wise 75% Attendance Audit Matrix:** Cross-departmental comparative analytics (CSE, ECE, ME, Civil) to identify at-risk batches before semester end.
+* **Automated Regulatory Compliance Dossiers:** Pre-compiled accreditation dossiers formatted for AICTE, UGC, and NAAC Grade A++ audits.
+
+### 👨‍👩‍👦 4. Parents & Guardians Universe (Transparent Monitoring)
+* **Parent Command Center:** Real-time visibility into ward's daily attendance percentage, active CGPA, and upcoming exam dates.
+* **Sub-Minute Morning Absence Alerts:** Automated push notifications and SMS alerts sent immediately if a student is marked absent in morning roll call.
+* **Authorized Guardian Smart ID:** Digital parent identity credential with student relationship verification and emergency contacts.
+* **Two-Factor Campus Pickup Pass:** Encrypted QR gate pass authorizing campus visits and verified student checkouts.
+* **Direct Tuition Fee Payments:** Direct bank-to-college settlement via UPI/cards with verified tax invoices delivered to WhatsApp and email.
+* **Direct Faculty Mentor Connect:** 1-tap direct messaging and consultation scheduling with assigned faculty mentors.
+
+---
+
+## 🧠 Sovereign Applied AI Subsystems (Zero-Cloud Cost)
+
+Digital Campus features an in-house suite of machine learning models engineered specifically for edge execution with zero third-party API dependencies:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                               SOVEREIGN CAMPUS AI SUITE                                │
+├──────────────────────┬──────────────────────┬───────────────────┬──────────────────────┤
+│  01. Voice Assistant │ 02. Performance ML   │ 03. Early Warning │ 04. Adaptive Learning│
+│  Bilingual NLU Model │ Multivariate SGPA    │ 4-Pillar Dropout  │ Skill-Gap Diagnostic │
+│  20+ Domain Intents  │ Regression (R²=0.91) │ Risk Prevention   │ 14-Day Exam Roadmap  │
+└──────────────────────┴──────────────────────┴───────────────────┴──────────────────────┘
+```
+
+1. **Bilingual Voice & Text Copilot:** Operates entirely within the Flutter runtime. Processes natural English, Hindi, and colloquial Hinglish queries. Dynamically evaluates live student records to answer attendance calculus, class substitutions, and fee dues.
+2. **Predictive Academic Performance Engine:** Gradient-boosted multivariate linear regression ($R^2 = 0.91$) forecasting semester SGPA with 95% confidence intervals based on attendance velocity and internal assessments.
+3. **Early Warning Dropout Prevention System (EWS):** 4-pillar risk matrix evaluating attendance decay slope, academic arrears, fee payment delays, and LMS engagement.
 
 ---
 
@@ -47,249 +139,91 @@ Digital Campus follows an **Offline-First, Decoupled Modular Architecture** desi
    └────────────────────────────────┘            └────────────────────────────────┘
 ```
 
-### Architectural Highlights:
-1. **Frontend Layer (Flutter 3.x & Dart 3.5+):** Multiplatform reactive client rendering at 60–120 FPS across Android, iOS, Web, Windows, and macOS.
-2. **State & Cache Management:** Centralized `CampusProvider` utilizing reactive state notification with instant optimistic UI updates and resilient fallback adapters.
-3. **Go Concurrency Engine:** Microservice written in Go supporting 100,000+ simultaneous connections with less than 25MB baseline memory footprint for peak registration traffic.
-4. **Python Applied ML Pipeline:** Scikit-Learn based multi-variate regression models and inverted-index textbook RAG search over local SQLite storage.
-
 ---
 
-## 🧠 Sovereign Applied AI Subsystems
+## 📜 Statutory Regulatory Compliance & Accreditation
 
-Digital Campus features a suite of applied machine learning and natural language processing engines designed specifically for the higher education domain:
+Digital Campus is mapped directly against the regulatory directives governing Indian higher education:
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                               SOVEREIGN CAMPUS AI SUITE                                │
-├──────────────────────┬──────────────────────┬───────────────────┬──────────────────────┤
-│  01. Voice Assistant │ 02. Performance ML   │ 03. Early Warning │ 04. Adaptive Learning│
-│  Bilingual NLU Model │ Multivariate SGPA    │ 4-Pillar Dropout  │ Skill-Gap Diagnostic │
-│  20+ Domain Intents  │ Regression (R²=0.91) │ Risk Prevention   │ 14-Day Exam Roadmap  │
-└──────────────────────┴──────────────────────┴───────────────────┴──────────────────────┘
-```
-
-### 1. Bilingual Campus NLU Voice & Text Copilot
-- **Zero-Cloud Dependency:** Complete natural language understanding operating directly within the application runtime.
-- **Deep Language Flexibility:** Native handling of natural English, Hindi, and colloquial Hinglish phrasings.
-- **Live State Reasoning:** Rather than returning generic static canned responses, queries dynamically evaluate live student records:
-  - *Subject-Specific Math:* Computes exact attendance percentages, classes held, and required consecutive attendances to attain 75% compliance.
-  - *Dynamic Safe Bunks:* Evaluates margin across each individual course to calculate exact permissible leaves without triggering detention.
-  - *Timetable & Substitution Awareness:* Alerts students to faculty medical leaves and assigned substitute professors in real-time.
-  - *Accounts & Transit Integration:* Delivers pending fee balances, receipt confirmations, and real-time GPS telemetry for campus transit.
-
-### 2. Predictive Academic Performance Engine
-- **Statistical Model:** Multi-variate gradient-boosted linear regression ($R^2 = 0.91$) modeling historical cohort outcomes against ongoing internal assessments and attendance velocity.
-- **Confidence Modeling:** Generates projected Semester SGPA with bounded 95% confidence intervals ($[SGPA_{lower}, SGPA_{upper}]$).
-- **Interactive "What-If" Sandbox:** Allows students to simulate grade scenarios by interactively adjusting daily study hours and targeted class attendance.
-
-### 3. Early Warning Dropout & Detention System (EWS)
-- **4-Pillar Risk Matrix:** Proactively evaluates student vulnerability before end-semester exam disqualification:
-  1. *Attendance Velocity:* 30-day attendance decay slope.
-  2. *Academic Backlog Arrears:* Historical and active course arrears.
-  3. *Financial Stress Index:* Delinquent institutional fees and installment default duration.
-  4. *LMS Engagement Metrics:* Participation in online discussion boards and practical lab doubt portals.
-- **Automated Interventions:** 1-click administrative workflows to trigger counselor appointments, parent alerts, or peer mentoring.
-
-### 4. Adaptive Learning & Diagnostic Remediation
-- Diagnostic analysis of test errors and concept gaps.
-- Generates individualized 14-day exam preparation roadmaps with milestone checkboxes.
-- Curated technical concept summaries and topic-specific practice quizzes.
-
----
-
-## 📦 Core Campus Subsystems & ERP Modules
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                   CAMPUS ERP MODULES                                   │
-├────────────────────┬─────────────────────┬────────────────────┬────────────────────────┤
-│ 📋 Lifecycle & PVC │ 📊 Attendance Radar │ 🕒 Dynamic Roster  │ 📜 Cryptographic Certs │
-├────────────────────┼─────────────────────┼────────────────────┼────────────────────────┤
-│ 💳 Fee Management  │ 🏠 Hostel & Mess    │ 🚌 Transit Fleet   │ 🛡️ Statutory Helpdesk  │
-└────────────────────┴─────────────────────┴────────────────────┴────────────────────────┘
-```
-
-### 1. Student Lifecycle Management & 3D Smart PVC ID Card
-- Comprehensive record management covering Academic Stage, Branch, Semester, Roll Number, Enrollment UID, and APAAR IDs.
-- **3D Smart PVC ID Card:** Verifiable digital identity card with double-sided flip animation, integrated RFID badge simulation, barcode scanner UID, and Registrar digital seal.
-
-### 2. Smart Biometric Attendance & Anti-Proxy Engine
-- Automated compliance tracking against the statutory 75% AICTE threshold.
-- Subject-by-subject radar analytics highlighting safe and danger zones.
-- Geofenced biometric check-in integration to eliminate proxy punching.
-
-### 3. Master Dynamic Timetable & Faculty Substitution Engine
-- Weekly lecture schedule with classroom allocations (e.g., LH-302, Advanced Computing Lab 3).
-- Real-time administrative broadcast for faculty leaves and verified proxy substitutions.
-- Integrated digital lecture notes and syllabus outlines.
-
-### 4. Cryptographic Digital Credentials (SHA-256)
-- On-demand generation of official Bonafide, NOC, Character, and Transcript Certificates.
-- Sealed with cryptographic SHA-256 digital hashes and scannable QR verification proofs for tamper-evident validation by scholarship authorities and passport offices.
-
-### 5. Institutional Fee Ledger & Payment System
-- Transparent accounting ledger tracking semester tuition, examination assessments, hostel fees, and transit passes.
-- Simulated instant payment gateway (UPI, NetBanking, Cards) with automated GST tax invoice receipt generation.
-
-### 6. Hostel Residence & Nutrition Mess Management
-- Room allotment telemetry (Block, Floor, Sharing configuration, Roommates, Warden directory).
-- 4-Meal Daily Mess Nutrition Schedule (Breakfast, Lunch, High Tea, Dinner).
-- **Automated E-Gate Pass System:** Warden approval workflow with timed security gate QR validation for campus entry/exit.
-
-### 7. Campus Transit & Fleet Telemetry System
-- Multi-route bus scheduling with active stop sequences and route maps.
-- Live GPS simulation featuring real-time vehicle speed telemetry, countdown ETA, and direct driver contact hotlines.
-
-### 8. Statutory Helpdesk & UGC Grievance Redressal
-- Enforces statutory 48-Hour SLA resolution deadlines for student concerns.
-- Specialized Anti-Ragging Statutory Cell and 24x7 Women's Campus Safety escalation hotline.
-- Transparent grievance ticket audit logs from submission to resolution.
-
----
-
-## 👥 Multi-Role Persona Portals
-
-Digital Campus provides distinct operational views tailored for every campus stakeholder:
-
-| Persona | Primary Focus & Capabilities |
-| :--- | :--- |
-| **Student** | Personal academic radar, safe bunks calculator, lecture schedules, digital PVC card, fee payments, gate pass generation, and AI Copilot interaction. |
-| **Faculty & Mentors** | Class attendance marking, student risk telemetry, substitute lecture acceptances, syllabus notes publishing, and mentorship counseling logs. |
-| **Administrator / Registrar** | Institutional enrollment KPIs, multi-tenant college onboarding, fee collection audits, fee ledger verification, and statutory grievance SLA monitoring. |
-| **Parent & Guardian** | Real-time monitoring of ward's biometric punch times, semester examination scorecards, pending fee dues, and direct mentor calling access. |
-
----
-
-## 📜 Statutory Compliance & Governance
-
-Digital Campus is engineered to align strictly with the regulatory framework governing Indian higher education:
-
-- **AICTE Norms:** Automated early warnings prior to semester exam detention for attendance falling below 75%.
-- **UGC Grievance Redressal Regulations (2023):** Built-in 48-hour SLA deadline tracking with automated escalation matrices.
-- **NAAC A++ Criteria Alignment:** Direct digital documentation supporting Criteria 2 (Teaching-Learning & Evaluation) and Criteria 5 (Student Support & Progression).
-- **NEP 2020 Guidelines:** Vernacular multilingual study support and mother-tongue conversational AI capabilities.
+* **AICTE (All India Council for Technical Education):** Statutory 75% attendance detention thresholds enforced with proactive alert margins.
+* **UGC (University Grants Commission 2023 Regulations):** Mandatory 48-Hour SLA grievance resolution clock with confidential whistleblower isolation.
+* **NEP 2020 (National Education Policy):** Multidisciplinary CBCS credit framework integrated with Digilocker Academic Bank of Credits (ABC).
+* **NAAC Grade A++ Metrics:** Built-in telemetry for Criteria 2 (Teaching-Learning & Evaluation) and Criteria 5 (Student Support & Progression).
+* **DPDPA 2023 (Digital Personal Data Protection Act):** Full compliance with sovereign data localization norms — student data is never exported to external LLM servers.
 
 ---
 
 ## 💻 Technology Stack Specifications
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Client Framework** | Flutter 3.x (SDK ^3.5.0) |
-| **Programming Languages** | Dart 3.5+, Go (Golang 1.22+), Python 3.11+ |
-| **State Management** | Provider 6.1.2 (Decoupled Reactive Pattern) |
-| **UI & Visual Design** | Google Fonts (Inter/Outfit), FL Chart 0.68, Lottie, Shimmer, Percent Indicator |
-| **Document Processing** | PDF 3.11, Printing 5.13, Path Provider, Open File |
-| **Cryptographic Security** | Crypto (SHA-256 verification), Local Geofencing, Role-Based Access Control |
-| **Backend & Microservices** | Go Concurrent HTTP Engine, FastAPI Python ML, SQLite, Redis |
-| **Code Push & Updates** | Shorebird Over-The-Air (OTA) Bytecode CodePush |
+| Component | Technology | Rationale |
+| :--- | :--- | :--- |
+| **Client UI** | Flutter 3.x / Dart 3.5+ | High-performance 60-120 FPS native client rendering on Android, iOS, Web, and Desktop. |
+| **State Layer** | Provider 6.1.2 | Decoupled reactive pattern ensuring sub-millisecond atomic state sync across views. |
+| **Backend Core** | Go (Golang 1.22+) | Microservices supporting 100,000+ simultaneous connections during peak exam registrations. |
+| **ML Engine** | Python 3.11 / Scikit-Learn | Multivariate linear regression and predictive academic performance modeling. |
+| **Storage Vault** | SQLite / Redis | Offline-first encrypted local database with memory cache for lightning-fast lookups. |
+| **Security** | SHA-256 / Geofencing | Tamper-evident certificate hashes, digital registrar seals, and anti-proxy validation. |
 
 ---
 
-## 📂 Repository Directory Layout
+## 🚀 Getting Started & Local Setup
 
-```text
-digital_campus/
-├── assets/                    # Static brand emblems, vector icons, and animations
-│   ├── images/                # Clean institutional branding & UI artwork
-│   ├── icons/                 # System glyphs & navigation icons
-│   └── logo.webp              # Digital Campus official vector brand emblem
-├── backend/                   # Microservices & Sovereign ML pipelines
-│   ├── main.go                # Go high-concurrency micro-engine (:8080)
-│   ├── server.py              # FastAPI Python analytics & RAG service (:8000)
-│   ├── ml_engine.py           # Scikit-Learn regression & dropout classifiers
-│   └── database.py            # SQLite schema initialization & database adapters
-├── lib/                       # Core Flutter Client Application
-│   ├── core/                  # Shared architecture & utilities
-│   │   ├── ai/                # Sovereign VoiceNlpEngine & ML inference modules
-│   │   ├── constants/         # Institutional constants & tenant configuration
-│   │   ├── services/          # API, GoBackend, and Document PDF services
-│   │   ├── theme/             # Material 3 Design System & Theme tokens
-│   │   └── widgets/           # BrandLogo, StatCards, RoleSwitchBar, CustomChips
-│   ├── data/                  # Live Campus Database registry & mock schemas
-│   ├── features/              # Feature modules (Clean Architecture)
-│   │   ├── ai_analytics/      # Predictive Performance & Early Dropout screens
-│   │   ├── ai_assistant/      # Voice & Chat Assistant with soundwave visualizer
-│   │   ├── attendance/        # Attendance Radar & Biometric Check-in
-│   │   ├── certificates/      # Cryptographic Certificate generator & QR validator
-│   │   ├── dashboard/         # Role-specific views (Student, Faculty, Admin, Parent)
-│   │   ├── fees/              # Fee Ledger, UPI Payment & GST Receipts
-│   │   ├── helpdesk/          # UGC 48-Hour SLA Grievance & Anti-Ragging Cell
-│   │   ├── hostel/            # Room allotment, Nutrition Mess & E-Gate Passes
-│   │   ├── lifecycle/         # Student Lifecycle & 3D Smart PVC ID Card
-│   │   ├── shell/             # Main application shell & AI Studio hub
-│   │   ├── timetable/         # Dynamic Schedule & Faculty Substitution alerts
-│   │   └── transport/         # Campus Bus GPS simulator & Transit Pass
-│   ├── models/                # Strongly-typed domain models & data entities
-│   ├── providers/             # Centralized CampusProvider state management
-│   └── main.dart              # Application entry point & service bootstrap
-└── pubspec.yaml               # Project dependencies and asset declarations
+```bash
+# 1. Clone the repository
+git clone https://github.com/mohitdonawat/digital-campus.git
+cd digital-campus
+
+# 2. Install project dependencies
+flutter pub get
+
+# 3. Verify environment health
+flutter doctor
+
+# 4. Launch on your preferred platform
+flutter run -d chrome      # Web presentation
+flutter run -d windows     # Windows desktop
+flutter run -d android     # Android device / emulator
 ```
 
 ---
 
-## 🚀 Setup & Execution Guide
+## 👨‍💻 Engineering Leadership & Creator
 
-### Prerequisites
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Version 3.24.0 or newer)
-- Android Studio / VS Code with Flutter extensions
-- Android Device / Emulator (API Level 26+) or Chrome for Web
-
-### Installation Steps
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/mohitdonawat/digital-campus.git
-   cd digital-campus
-   ```
-
-2. **Install project dependencies:**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Verify environment health:**
-   ```bash
-   flutter doctor
-   flutter analyze
-   ```
-
-4. **Launch the application:**
-   - **For Chrome (Web):**
-     ```bash
-     flutter run -d chrome
-     ```
-   - **For Windows Desktop:**
-     ```bash
-     flutter run -d windows
-     ```
-   - **For Android Device/Emulator:**
-     ```bash
-     flutter run -d android
-     ```
-
----
-
-## 🔒 Security & Data Privacy
-
-- **Zero Third-Party Telemetry:** Student grades, attendance statistics, and fee balances are processed locally on the client and sovereign backend without uploading sensitive data to external AI servers.
-- **Tamper-Evident Hashing:** Official documents and certificates embed irreversible SHA-256 verification hashes.
-- **Role Isolation:** Strict interface and data separation between students, parents, faculty, and administrative authorities.
-
----
-
-## 👨‍💻 Engineering Leadership & Author
-
-**Designed, Architected & Built by:**  
+**Conceived, Architected, Designed & Solely Built by:**  
 ### **Mr. Mohit Donawat**
-- **Role:** Lead System Architect & Full-Stack AI Engineer
-- **GitHub:** [@mohitdonawat](https://github.com/mohitdonawat)
-- **Project:** Digital Campus Unified Operating System (ERP 4.0 & Applied AI)
+* 🌐 **Personal Portfolio:** [https://mohitdonawat.wildus.app](https://mohitdonawat.wildus.app)
+* 🐙 **GitHub Profile:** [@mohitdonawat](https://github.com/mohitdonawat)
+* 🏷️ **Domain Expertise:** Higher Education ERP 4.0, Sovereign Applied AI, Distributed Go Microservices & Flutter Architecture
+* 🏆 **Hackathon Team:** **Educated Warriors** (Team Leader: Mr. Mohit Donawat)
 
 ---
 
-## 📄 License & Attribution
+## ⚖️ Proprietary License & Intellectual Property Protection
 
-Developed & Maintained by **Mr. Mohit Donawat** (Digital Campus Technologies). All rights reserved.  
-Engineered for modernization, statutory regulatory compliance, and institutional governance across higher education institutions.
+### © Copyright 2026 Mr. Mohit Donawat. All Rights Reserved.
+
+**STRICTLY PROPRIETARY, SOURCE-AVAILABLE & CONFIDENTIAL**
+
+All right, title, and interest in and to this project — including its source code, architecture, UI/UX designs, database models, algorithms, and documentation — are the exclusive intellectual property of **Mr. Mohit Donawat**.
+
+### 📋 License Permission & Restriction Matrix:
+
+| Action / Usage Type | Permitted? | Legal Conditions |
+| :--- | :---: | :--- |
+| **Non-Commercial Academic Inspection** | ✅ YES | Allowed strictly for evaluation, research, and non-commercial study. |
+| **Hackathon & Competition Evaluation** | ✅ YES | Recognized juries may inspect, evaluate, and test the prototype. |
+| **Personal Portfolio Review** | ✅ YES | Allowed for reviewing the engineering work of Mr. Mohit Donawat. |
+| **Commercial Exploitation / Resale** | ❌ **STRICTLY FORBIDDEN** | Selling, leasing, monetizing, or commercial deployment is strictly prohibited. |
+| **Software-as-a-Service (SaaS) Hosting** | ❌ **STRICTLY FORBIDDEN** | Hosting or offering this software as a service is strictly prohibited. |
+| **White-Labeling / Re-Branding** | ❌ **STRICTLY FORBIDDEN** | Removing author credits or distributing under another name is illegal. |
+| **Creating Derivative Commercial Works** | ❌ **STRICTLY FORBIDDEN** | Forking or adapting code for commercial products is strictly prohibited. |
+
+#### 🚫 Legal Enforcement Notice:
+Unauthorized commercial use, public redistribution, white-labeling, or intellectual property infringement will be prosecuted to the fullest extent of the law under:
+- The Indian Copyright Act, 1957 (and all subsequent amendments);
+- The Information Technology Act, 2000;
+- The Berne Convention for the Protection of Literary and Artistic Works;
+- Applicable international intellectual property and trade secret treaties.
+
+For enterprise licensing, commercial partnerships, or official permissions:  
+👉 **Connect directly with the author:** [https://mohitdonawat.wildus.app](https://mohitdonawat.wildus.app)

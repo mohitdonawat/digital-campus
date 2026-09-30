@@ -2,7 +2,7 @@ name: digital_campus
 description: "Digital Campus - Unified Smart Campus Platform for Digital Governance, Education ERP & AI Automation"
 publish_to: 'none'
 
-version: 1.0.0+4
+version: 1.0.0+6
 
 environment:
   sdk: ^3.5.0
@@ -65,7 +65,6 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/lottie/
-    - assets/logo.webp
     - shorebird.yaml
 
   # fonts:

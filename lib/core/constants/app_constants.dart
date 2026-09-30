@@ -19,7 +19,7 @@ class AppConstants {
   static const String institutionShort = "Apex Tech";
   static const String affiliation      = "AICTE Approved • Autonomous University • Estd. 1999";
   static const String accreditation    = "NAAC Grade A++ Accredited • Tier-1 Institution";
-  static const String logoPath         = "assets/logo.webp";
+  static const String logoPath         = "assets/images/digital_campus_logo.png";
 
   // ── Statutory / Compliance ─────────────────────────────────────────
   static const double minimumAttendancePercentage   = 75.0;
@@ -58,7 +58,7 @@ extension UserRoleExtension on UserRole {
       case UserRole.faculty:
         return "Dr. Mohit Donawat (HOD - CSE)";
       case UserRole.admin:
-        return "Dr. R.K. Saxena (Registrar & COE)";
+        return "Mr. Shridhar Donawat (Dean & Director)";
       case UserRole.parent:
         return "Suresh Sharma (Parent of Rahul)";
     }
@@ -71,7 +71,7 @@ extension UserRoleExtension on UserRole {
       case UserRole.faculty:
         return "Dept of Computer Science & Engineering";
       case UserRole.admin:
-        return "Office of Academic Governance & Registrar";
+        return "Directorate & Office of Dean & Director";
       case UserRole.parent:
         return "Ward: Rahul Sharma (B.Tech CSE - Sec A)";
     }

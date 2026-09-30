@@ -60,7 +60,7 @@ Digital Campus does not solve just one isolated problem. It creates a **single p
 - **34% Reduction in Student Dropouts:** Detecting distress 60 to 90 days before final exams prevents silent dropouts.
 - **15 Minutes Saved per Lecture:** Eliminates manual roll-calls across thousands of lectures every week.
 - **100% Elimination of Administrative Queues:** Bonafide certificates and fee receipts take $< 3$ seconds instead of 3 to 7 days.
-- **₹18.5 Lakhs Annual Operational Savings:** Replaces physical paper registers, printed certificates, and toner cartridges with paperless digital governance.
+- **Significant Annual Operational Savings:** Replaces physical paper registers, printed certificates, and heavy toner overheads with paper-light digital governance.
 
 ---
 
@@ -98,7 +98,7 @@ Digital Campus is specifically engineered to meet statutory Indian educational b
 ---
 
 ### 10. 🎯 Unmatched Presentation & Evaluation Experience
-With our **1-Tap Demo Role Switcher** built directly into the AppBar, judges do not have to watch tedious logout/login screens. In under 10 seconds, evaluators can experience the platform through the eyes of **Rahul Sharma (Student)**, **Dr. Mohit Donawat (HOD)**, **Dr. R.K. Saxena (Registrar)**, and **Suresh Sharma (Parent)**.
+With our **1-Tap Demo Role Switcher** built directly into the AppBar, judges do not have to watch tedious logout/login screens. In under 10 seconds, evaluators can experience the platform through the eyes of **Rahul Sharma (Student)**, **Dr. Mohit Donawat (HOD)**, **Mr. Shridhar Donawat (Dean & Director)**, and **Suresh Sharma (Parent)**.
 
 ---
 

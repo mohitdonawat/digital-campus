@@ -8,6 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../constants/app_constants.dart';
 import '../../models/campus_models.dart';
+import '../../providers/campus_provider.dart';
 
 class DocumentDownloadService {
   /// ── 1. REAL PVC SMART ID CARD PDF ──────────────────────────────────────────
@@ -155,8 +156,8 @@ class DocumentDownloadService {
                           pw.Column(
                             crossAxisAlignment: pw.CrossAxisAlignment.end,
                             children: [
-                              pw.Text("Registrar Signature", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-                              pw.Text("Dr. R.K. Saxena", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                              pw.Text("Dean & Director Signature", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                              pw.Text("Mr. Shridhar Donawat", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
                             ],
                           ),
                         ],
@@ -179,6 +180,413 @@ class DocumentDownloadService {
       await _saveAndOpenFile(context, pdf, "CS22B045_Smart_ID.pdf");
     } catch (e) {
       _showError(context, e.toString());
+    }
+  }
+
+  /// ── 1B. ROLE-AWARE PVC SMART ID CARD / CREDENTIAL PASS PDF ────────────────
+  static Future<void> downloadRolePvcIdCardPdf(BuildContext context, CampusProvider provider) async {
+    final role = provider.currentRole;
+    switch (role) {
+      case UserRole.student:
+        return downloadPvcIdCardPdf(context, provider.student);
+
+      case UserRole.faculty:
+        final fac = provider.facultyProfile;
+        _showDownloadingSheet(context, "Faculty Official ID Pass", "FAC_CSE_019_Faculty_ID.pdf");
+        try {
+          final pdf = pw.Document();
+          pdf.addPage(
+            pw.Page(
+              pageFormat: PdfPageFormat.a4,
+              margin: const pw.EdgeInsets.all(32),
+              build: (pw.Context ctx) {
+                return pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    // Header
+                    pw.Container(
+                      padding: const pw.EdgeInsets.all(16),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.blue900,
+                        borderRadius: pw.BorderRadius.circular(12),
+                      ),
+                      child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(
+                                AppConstants.institutionName.toUpperCase(),
+                                style: pw.TextStyle(color: PdfColors.white, fontSize: 16, fontWeight: pw.FontWeight.bold),
+                              ),
+                              pw.SizedBox(height: 4),
+                              pw.Text("FACULTY & RESEARCH COUNCIL • AUTONOMOUS", style: const pw.TextStyle(color: PdfColors.blue100, fontSize: 10)),
+                            ],
+                          ),
+                          pw.Text("FACULTY PASS", style: pw.TextStyle(color: PdfColors.amber, fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(height: 24),
+                    // PVC Card Box
+                    pw.Container(
+                      width: 360,
+                      padding: const pw.EdgeInsets.all(20),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.white,
+                        borderRadius: pw.BorderRadius.circular(16),
+                        border: pw.Border.all(color: PdfColors.blue900, width: 2),
+                      ),
+                      child: pw.Column(
+                        children: [
+                          pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                            children: [
+                              pw.Text("OFFICIAL FACULTY & RESEARCH CREDENTIAL", style: pw.TextStyle(color: PdfColors.blue900, fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                              pw.Container(
+                                padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                color: PdfColors.green100,
+                                child: pw.Text("TENURED", style: pw.TextStyle(color: PdfColors.green900, fontSize: 9)),
+                              ),
+                            ],
+                          ),
+                          pw.Divider(color: PdfColors.grey300),
+                          pw.SizedBox(height: 10),
+                          pw.Row(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Container(
+                                width: 80,
+                                height: 100,
+                                decoration: pw.BoxDecoration(
+                                  color: PdfColors.blue50,
+                                  border: pw.Border.all(color: PdfColors.blue300),
+                                ),
+                                child: pw.Center(
+                                  child: pw.Text("MD", style: pw.TextStyle(color: PdfColors.blue900, fontSize: 28, fontWeight: pw.FontWeight.bold)),
+                                ),
+                              ),
+                              pw.SizedBox(width: 16),
+                              pw.Expanded(
+                                child: pw.Column(
+                                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                  children: [
+                                    pw.Text(fac.name, style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                                    pw.SizedBox(height: 4),
+                                    pw.Text("Faculty ID: ${fac.id}", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.Text("Role: Associate Professor & HOD", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.Text("Department: ${fac.department}", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.Text("Cabin: ${fac.cabin}", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.Text("Clearances: Server Room, Lab 3, Senate", style: const pw.TextStyle(fontSize: 10.5)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          pw.SizedBox(height: 16),
+                          pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                            children: [
+                              pw.BarcodeWidget(
+                                barcode: pw.Barcode.code128(),
+                                data: fac.id,
+                                width: 140,
+                                height: 35,
+                              ),
+                              pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                                children: [
+                                  pw.Text("Attested by Dean & Director", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                                  pw.Text("Mr. Shridhar Donawat", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(height: 24),
+                    pw.Text("Official Faculty Credential with Server Room and Academic Senate Biometric Clearance.", style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 9)),
+                  ],
+                );
+              },
+            ),
+          );
+          await _saveAndOpenFile(context, pdf, "FAC_CSE_019_Faculty_ID.pdf");
+        } catch (e) {
+          _showError(context, e.toString());
+        }
+        break;
+
+      case UserRole.admin:
+        final admin = provider.adminProfile;
+        _showDownloadingSheet(context, "Executive Governance Pass", "DIR_EXE_001_Executive_Pass.pdf");
+        try {
+          final pdf = pw.Document();
+          pdf.addPage(
+            pw.Page(
+              pageFormat: PdfPageFormat.a4,
+              margin: const pw.EdgeInsets.all(32),
+              build: (pw.Context ctx) {
+                return pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    // Header
+                    pw.Container(
+                      padding: const pw.EdgeInsets.all(16),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.amber900,
+                        borderRadius: pw.BorderRadius.circular(12),
+                      ),
+                      child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(
+                                AppConstants.institutionName.toUpperCase(),
+                                style: pw.TextStyle(color: PdfColors.white, fontSize: 16, fontWeight: pw.FontWeight.bold),
+                              ),
+                              pw.SizedBox(height: 4),
+                              pw.Text("OFFICE OF THE DEAN & DIRECTOR • STATUTORY SEAL", style: const pw.TextStyle(color: PdfColors.amber100, fontSize: 10)),
+                            ],
+                          ),
+                          pw.Text("CHANCELLOR PASS", style: pw.TextStyle(color: PdfColors.white, fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(height: 24),
+                    // Card Box
+                    pw.Container(
+                      width: 360,
+                      padding: const pw.EdgeInsets.all(20),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.white,
+                        borderRadius: pw.BorderRadius.circular(16),
+                        border: pw.Border.all(color: PdfColors.amber900, width: 2),
+                      ),
+                      child: pw.Column(
+                        children: [
+                          pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                            children: [
+                              pw.Text("EXECUTIVE GOVERNANCE SEAL PASS", style: pw.TextStyle(color: PdfColors.amber900, fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                              pw.Container(
+                                padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                color: PdfColors.amber100,
+                                child: pw.Text("SOVEREIGN LEVEL-1", style: pw.TextStyle(color: PdfColors.amber900, fontSize: 9)),
+                              ),
+                            ],
+                          ),
+                          pw.Divider(color: PdfColors.grey300),
+                          pw.SizedBox(height: 10),
+                          pw.Row(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Container(
+                                width: 80,
+                                height: 100,
+                                decoration: pw.BoxDecoration(
+                                  color: PdfColors.amber50,
+                                  border: pw.Border.all(color: PdfColors.amber400),
+                                ),
+                                child: pw.Center(
+                                  child: pw.Text("SD", style: pw.TextStyle(color: PdfColors.amber900, fontSize: 28, fontWeight: pw.FontWeight.bold)),
+                                ),
+                              ),
+                              pw.SizedBox(width: 16),
+                              pw.Expanded(
+                                child: pw.Column(
+                                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                  children: [
+                                    pw.Text(admin.name, style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                                    pw.SizedBox(height: 4),
+                                    pw.Text("Executive ID: ${admin.id}", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.Text("Designation: ${admin.designation}", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.Text("Office: Chancellor Suite, Central Admin", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.Text("Authority: Senate President & Attestor", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.Text("Clearance: Sovereign All Campus Zones", style: const pw.TextStyle(fontSize: 10.5)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          pw.SizedBox(height: 16),
+                          pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                            children: [
+                              pw.BarcodeWidget(
+                                barcode: pw.Barcode.code128(),
+                                data: admin.id,
+                                width: 140,
+                                height: 35,
+                              ),
+                              pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                                children: [
+                                  pw.Text("Executive Seal & Authority", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                                  pw.Text("Mr. Shridhar Donawat", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(height: 24),
+                    pw.Text("Institutional Statutory Executive Seal Credential. Tier-1 Sovereign Campus Authority.", style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 9)),
+                  ],
+                );
+              },
+            ),
+          );
+          await _saveAndOpenFile(context, pdf, "DIR_EXE_001_Executive_Pass.pdf");
+        } catch (e) {
+          _showError(context, e.toString());
+        }
+        break;
+
+      case UserRole.parent:
+        final parent = provider.parentProfile;
+        _showDownloadingSheet(context, "Guardian Campus Gate Pass", "GRD_CS045_Guardian_Pass.pdf");
+        try {
+          final pdf = pw.Document();
+          pdf.addPage(
+            pw.Page(
+              pageFormat: PdfPageFormat.a4,
+              margin: const pw.EdgeInsets.all(32),
+              build: (pw.Context ctx) {
+                return pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    // Header
+                    pw.Container(
+                      padding: const pw.EdgeInsets.all(16),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.green900,
+                        borderRadius: pw.BorderRadius.circular(12),
+                      ),
+                      child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(
+                                AppConstants.institutionName.toUpperCase(),
+                                style: pw.TextStyle(color: PdfColors.white, fontSize: 16, fontWeight: pw.FontWeight.bold),
+                              ),
+                              pw.SizedBox(height: 4),
+                              pw.Text("CAMPUS SECURITY & VISITOR PASS • VERIFIED GUARDIAN", style: const pw.TextStyle(color: PdfColors.green100, fontSize: 10)),
+                            ],
+                          ),
+                          pw.Text("GATE PASS", style: pw.TextStyle(color: PdfColors.white, fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(height: 24),
+                    // Card Box
+                    pw.Container(
+                      width: 360,
+                      padding: const pw.EdgeInsets.all(20),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.white,
+                        borderRadius: pw.BorderRadius.circular(16),
+                        border: pw.Border.all(color: PdfColors.green800, width: 2),
+                      ),
+                      child: pw.Column(
+                        children: [
+                          pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                            children: [
+                              pw.Text("AUTHORIZED GUARDIAN ACCESS PASS", style: pw.TextStyle(color: PdfColors.green900, fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                              pw.Container(
+                                padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                color: PdfColors.green100,
+                                child: pw.Text("GATE-1 VERIFIED", style: pw.TextStyle(color: PdfColors.green900, fontSize: 9)),
+                              ),
+                            ],
+                          ),
+                          pw.Divider(color: PdfColors.grey300),
+                          pw.SizedBox(height: 10),
+                          pw.Row(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Container(
+                                width: 80,
+                                height: 100,
+                                decoration: pw.BoxDecoration(
+                                  color: PdfColors.green50,
+                                  border: pw.Border.all(color: PdfColors.green300),
+                                ),
+                                child: pw.Center(
+                                  child: pw.Text("SS", style: pw.TextStyle(color: PdfColors.green900, fontSize: 28, fontWeight: pw.FontWeight.bold)),
+                                ),
+                              ),
+                              pw.SizedBox(width: 16),
+                              pw.Expanded(
+                                child: pw.Column(
+                                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                  children: [
+                                    pw.Text(parent.name, style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                                    pw.SizedBox(height: 2),
+                                    pw.Text("Relation: ${parent.relationship}", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.Text("Pass ID: GRD-PASS-2026-045", style: const pw.TextStyle(fontSize: 10.5)),
+                                    pw.SizedBox(height: 4),
+                                    pw.Container(
+                                      padding: const pw.EdgeInsets.all(6),
+                                      color: PdfColors.grey100,
+                                      child: pw.Column(
+                                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                        children: [
+                                          pw.Text("LINKED WARD: ${parent.wardName}", style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                                          pw.Text("Roll No: ${parent.wardRollNumber}", style: const pw.TextStyle(fontSize: 9)),
+                                          pw.Text("Course: ${parent.wardBranch} • Sem ${parent.wardSemester}", style: const pw.TextStyle(fontSize: 9)),
+                                          pw.Text("Hostel: Block 3, Room H-204", style: const pw.TextStyle(fontSize: 9)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          pw.SizedBox(height: 16),
+                          pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                            children: [
+                              pw.BarcodeWidget(
+                                barcode: pw.Barcode.code128(),
+                                data: "GRD-2026-CS045",
+                                width: 140,
+                                height: 35,
+                              ),
+                              pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                                children: [
+                                  pw.Text("Issued by Dean & Chief Proctor", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                                  pw.Text("Mr. Shridhar Donawat", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(height: 24),
+                    pw.Text("Authorized Guardian Campus Access Pass. Valid during visiting hours with Gate-1 verification.", style: const pw.TextStyle(color: PdfColors.grey600, fontSize: 9)),
+                  ],
+                );
+              },
+            ),
+          );
+          await _saveAndOpenFile(context, pdf, "GRD_CS045_Guardian_Pass.pdf");
+        } catch (e) {
+          _showError(context, e.toString());
+        }
+        break;
     }
   }
 
@@ -781,10 +1189,10 @@ class DocumentDownloadService {
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        pw.Text("Registrar Seal & Signature", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                        pw.Text("Dean & Director Seal & Signature", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
                         pw.SizedBox(height: 4),
-                        pw.Text("Dr. R.K. Saxena", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                        pw.Text("University Registrar", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                        pw.Text("Mr. Shridhar Donawat", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                        pw.Text("Dean & Director", style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
                       ],
                     ),
                   ],
@@ -1198,8 +1606,8 @@ class DocumentDownloadService {
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.end,
                         children: [
-                          pw.Text("University Registrar & COE", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey600)),
-                          pw.Text("Dr. R.K. Saxena", style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                          pw.Text("Dean & Director Authority", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey600)),
+                          pw.Text("Mr. Shridhar Donawat", style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                           pw.Text(AppConstants.institutionShort, style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey600)),
                         ],
                       ),

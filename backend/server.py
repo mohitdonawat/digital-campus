@@ -410,7 +410,7 @@ def generate_bonafide(student_id: str = "STU-2022-CS-045"):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-    INSERT INTO certificates VALUES (?, 'Official State Scholarship Bonafide Certificate', 'Bonafide', ?, 'Rahul Sharma', 'CS22B045', ?, 'Dr. R.K. Saxena (Registrar)');
+    INSERT INTO certificates VALUES (?, 'Official State Scholarship Bonafide Certificate', 'Bonafide', ?, 'Rahul Sharma', 'CS22B045', ?, 'Mr. Shridhar Donawat (Dean & Director)');
     """, (cert_id, now[:10], digest))
     conn.commit()
     conn.close()

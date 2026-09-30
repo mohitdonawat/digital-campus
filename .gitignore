@@ -62,6 +62,7 @@ __pycache__/
 **/.gocache/
 backend/go_node_engine/.gocache/
 
+
 # ── IDEs & Editors ────────────────────────────────────────────────────
 .idea/
 .vscode/
@@ -82,3 +83,17 @@ Thumbs.db
 .svn/
 .swiftpm/
 migrate_working_dir/
+
+# ── Ignore Documentation, Presentation Decks & Scratch Scripts ────────
+docs/
+**/docs/
+generate_logo.ps1
+~$*
+**/~$*
+
+# ── Ignore all Markdown files except root README.md ────────────────────
+*.md
+**/*.md
+!README.md
+
+

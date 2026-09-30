@@ -192,7 +192,7 @@ class ApiService {
       sha256Hash: "8f4a7c2b9e1103d85d7f198b2c4e339a0ef61899e31d45bc8120fa264e1c9e54",
       verificationUrl: "https://verify.digitalcampus.edu/cert/instant",
       isAttested: true,
-      attestedBy: "Dr. R.K. Saxena (Registrar & COE)",
+      attestedBy: "Mr. Shridhar Donawat (Dean & Director)",
     );
   }
 

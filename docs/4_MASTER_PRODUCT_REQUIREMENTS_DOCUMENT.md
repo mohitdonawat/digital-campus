@@ -76,8 +76,8 @@ Most technical universities and engineering institutions across India still rely
 - **Goals**: Conduct lectures without wasting time on paper roll calls, schedule substitute teachers when on leave, review semester registration applications in 1 tap, and moderate class doubts safely.
 - **Pain Points**: Paper registers, manual attendance percentage calculations, students submitting incomplete registration forms.
 
-### 2.3 Persona 3: The Administrator / Registrar (Dr. R.K. Saxena)
-- **Role**: College Registrar & Chief Examination Officer.
+### 2.3 Persona 3: The Administrator / Dean & Director (Mr. Shridhar Donawat)
+- **Role**: College Dean & Director / Chief Governance Authority.
 - **Goals**: Ensure institutional compliance with RGPV/AICTE guidelines, audit detention lists before issuing university exam admit cards, monitor campus grievances, and prevent identity fraud.
 - **Pain Points**: Forged physical bonafides, lack of real-time attendance transparency, chaotic grievance records during AICTE inspections.
 
