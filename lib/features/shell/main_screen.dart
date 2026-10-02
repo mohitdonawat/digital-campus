@@ -28,6 +28,9 @@ import '../study_assistant/vernacular_study_assistant_screen.dart';
 import '../study_assistant/ai_tutor_vision_studio_screen.dart';
 import '../account/professional_account_screen.dart';
 import '../splash/landing_splash_screen.dart';
+import '../quiz/teacher_quiz_studio_screen.dart';
+import '../quiz/student_quiz_portal_screen.dart';
+import '../faculty/faculty_edit_dossier_screen.dart';
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 //  MainScreen â€” premium redesign
@@ -739,6 +742,18 @@ class _MainScreenState extends State<MainScreen>
             onTap: () => Navigator.push(
                 context, MaterialPageRoute(builder: (_) => const TimetableScreen())),
           ),
+          const SizedBox(height: 10),
+          _aiCard(
+            number: "07",
+            title: "Adaptive Bloom's Quizzes & Tests",
+            subtitle: "Targeted curriculum assessments, anti-cheat sandbox & class ranks",
+            icon: Icons.quiz_rounded,
+            color: const Color(0xFFD97706),
+            gradColors: const [Color(0xFF451A03), Color(0xFF1F1206)],
+            badge: "Proctored Exam",
+            onTap: () => Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const StudentQuizPortalScreen())),
+          ),
         ],
       ),
     );
@@ -809,14 +824,14 @@ class _MainScreenState extends State<MainScreen>
           const SizedBox(height: 10),
           _aiCard(
             number: "05",
-            title: "Adaptive Teaching & Bloom's Quiz Prep",
-            subtitle: "Classroom knowledge gap analysis & auto-generated question banks",
+            title: "Adaptive Teaching & Bloom's Quiz Studio",
+            subtitle: "Targeted branch/sem quiz builder, textbook RAG & live leaderboard",
             icon: Icons.quiz_rounded,
             color: const Color(0xFFD97706),
             gradColors: const [Color(0xFF451A03), Color(0xFF1F1206)],
-            badge: "Question Bank",
+            badge: "Faculty Studio",
             onTap: () => Navigator.push(
-                context, MaterialPageRoute(builder: (_) => const PersonalizedLearningScreen())),
+                context, MaterialPageRoute(builder: (_) => const TeacherQuizStudioScreen())),
           ),
           const SizedBox(height: 10),
           _aiCard(

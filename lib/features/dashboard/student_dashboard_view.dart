@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/campus_models.dart';
+import '../../core/widgets/glass_card.dart';
 import '../../providers/campus_provider.dart';
 import '../attendance/attendance_screen.dart';
 import '../timetable/timetable_screen.dart';
@@ -13,6 +14,9 @@ import '../study_assistant/ai_tutor_vision_studio_screen.dart';
 import '../helpdesk/helpdesk_screen.dart';
 import '../account/professional_account_screen.dart';
 import '../registration/semester_registration_screen.dart';
+import '../hostel/hostel_screen.dart';
+import '../transport/transport_screen.dart';
+import '../ai_analytics/predictive_performance_screen.dart';
 
 /// Ultra-Clean, Uncluttered Student Dashboard
 class StudentDashboardView extends StatelessWidget {
@@ -68,7 +72,14 @@ class StudentDashboardView extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            // ── 5. IMPORTANT CAMPUS NOTICE ────────────────────────────────────
+            // ── 5. GRIEVANCE TRACKER ──────────────────────────────────────────
+            _buildSectionTitle("MY GRIEVANCES"),
+            const SizedBox(height: 8),
+            GrievanceSummaryCard(role: UserRole.student),
+
+            const SizedBox(height: 18),
+
+            // ── 6. IMPORTANT CAMPUS NOTICE ────────────────────────────────────
             _buildSectionTitle("CAMPUS BULLETIN"),
             const SizedBox(height: 8),
             _buildNoticeCard(
@@ -444,6 +455,15 @@ class StudentDashboardView extends StatelessWidget {
       }),
       _ServiceItem("Certificates", Icons.verified_rounded, const Color(0xFFD97706), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const DigitalCertificatesScreen()));
+      }),
+      _ServiceItem("Hostel & Mess", Icons.hotel_rounded, const Color(0xFF6366F1), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const HostelScreen()));
+      }),
+      _ServiceItem("Campus Bus", Icons.directions_bus_rounded, const Color(0xFF0D9488), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const TransportScreen()));
+      }),
+      _ServiceItem("AI Analytics", Icons.auto_graph_rounded, const Color(0xFFE11D48), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const PredictivePerformanceScreen()));
       }),
     ];
 

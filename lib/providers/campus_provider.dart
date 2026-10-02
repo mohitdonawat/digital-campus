@@ -5,8 +5,10 @@ import '../core/services/firebase_service.dart';
 import '../core/services/api_service.dart';
 import '../core/services/go_backend_service.dart';
 import '../models/campus_models.dart';
+import '../models/quiz_models.dart';
 import '../data/campus_database.dart';
 import '../core/ai/personalized_learning_recommender.dart';
+import '../core/services/textbook_quiz_repository.dart';
 
 class CampusProvider extends ChangeNotifier {
   final FirebaseService _firebaseService = FirebaseService();
@@ -107,6 +109,70 @@ class CampusProvider extends ChangeNotifier {
   List<GatePass> _gatePasses = List.from(CampusDatabase.gatePasses);
   List<GatePass> get gatePasses => _gatePasses;
 
+  List<HostelMaintenanceTicket> _hostelMaintenanceTickets = List.from(CampusDatabase.hostelMaintenanceTickets);
+  List<HostelMaintenanceTicket> get hostelMaintenanceTickets => _hostelMaintenanceTickets;
+
+  List<MessMealFeedback> _messFeedbacks = List.from(CampusDatabase.messMealFeedbacks);
+  List<MessMealFeedback> get messFeedbacks => _messFeedbacks;
+
+  List<MessRebateClaim> _messRebates = List.from(CampusDatabase.messRebates);
+  List<MessRebateClaim> get messRebates => _messRebates;
+
+  List<HostelBlockOccupancy> _hostelBlocksOccupancy = List.from(CampusDatabase.hostelBlocksOccupancy);
+  List<HostelBlockOccupancy> get hostelBlocksOccupancy => _hostelBlocksOccupancy;
+
+  HostelFeePolicy _hostelFeePolicy = const HostelFeePolicy();
+  HostelFeePolicy get hostelFeePolicy => _hostelFeePolicy;
+
+  List<RoomSwapRequest> _roomSwaps = List.from(CampusDatabase.roomSwapRequests);
+  List<RoomSwapRequest> get roomSwaps => _roomSwaps;
+
+  List<HostelFacilitySlot> _facilitySlots = List.from(CampusDatabase.hostelFacilitySlots);
+  List<HostelFacilitySlot> get facilitySlots => _facilitySlots;
+
+  RoommateCompatibilityProfile _roommateProfile = CampusDatabase.roommateProfile;
+  RoommateCompatibilityProfile get roommateProfile => _roommateProfile;
+
+  HostelEnergyMeter _hostelEnergyMeter = CampusDatabase.hostelEnergyMeter;
+  HostelEnergyMeter get hostelEnergyMeter => _hostelEnergyMeter;
+
+  List<HostelEmergencySosLog> _hostelSosLogs = List.from(CampusDatabase.hostelSosLogs);
+  List<HostelEmergencySosLog> get hostelSosLogs => _hostelSosLogs;
+
+  bool _isSosActive = false;
+  bool get isSosActive => _isSosActive;
+
+  // 6 Ultra-Smart Hostel Innovations State
+  RoommateQuizProfile _roommateQuiz = CampusDatabase.studentRoommateQuiz;
+  RoommateQuizProfile get roommateQuiz => _roommateQuiz;
+
+  List<RoommateQuizProfile> _roommateCandidates = List.from(CampusDatabase.allRoommateCandidates);
+  List<RoommateQuizProfile> get roommateCandidates => _roommateCandidates;
+
+  RoommateMatchmakerSetting _matchmakerSetting = CampusDatabase.roommateMatchmakerSetting;
+  RoommateMatchmakerSetting get matchmakerSetting => _matchmakerSetting;
+
+  List<DiningIntentRecord> _diningIntents = List.from(CampusDatabase.initialDiningIntents);
+  List<DiningIntentRecord> get diningIntents => _diningIntents;
+
+  MessHeadcountForecast _messForecast = CampusDatabase.messHeadcountForecast;
+  MessHeadcountForecast get messForecast => _messForecast;
+
+  SilentDuressAlarm _silentDuress = CampusDatabase.silentDuressAlarm;
+  SilentDuressAlarm get silentDuress => _silentDuress;
+
+  bool _isSilentDuressTriggered = false;
+  bool get isSilentDuressTriggered => _isSilentDuressTriggered;
+
+  List<RoomAssetInspection> _roomAssetInspections = List.from(CampusDatabase.roomAssetInspections);
+  List<RoomAssetInspection> get roomAssetInspections => _roomAssetInspections;
+
+  GreenDormEnergyCredit _greenDormEnergy = CampusDatabase.greenDormEnergyCredit;
+  GreenDormEnergyCredit get greenDormEnergy => _greenDormEnergy;
+
+  List<CurfewExtensionRequest> _curfewExtensions = List.from(CampusDatabase.initialCurfewExtensions);
+  List<CurfewExtensionRequest> get curfewExtensions => _curfewExtensions;
+
   // Transport
   BusRoute _busRoute = CampusDatabase.busRoute;
   BusRoute get busRoute => _busRoute;
@@ -143,6 +209,13 @@ class CampusProvider extends ChangeNotifier {
 
   bool _isAiSpeaking = false;
   bool get isAiSpeaking => _isAiSpeaking;
+
+  // Adaptive Quizzes & Submissions
+  List<CampusQuiz> _quizzes = TextbookQuizRepository.getInitialQuizzes();
+  List<CampusQuiz> get quizzes => _quizzes;
+
+  List<QuizSubmission> _quizSubmissions = TextbookQuizRepository.getInitialSubmissions();
+  List<QuizSubmission> get quizSubmissions => _quizSubmissions;
 
   CampusProvider() {
     // 1. Synchronously pre-calculate models so widgets NEVER crash on initial build
@@ -339,6 +412,45 @@ class CampusProvider extends ChangeNotifier {
       bio: _aiCareerInsight.generatedBio,
       placementReadinessScore: _aiCareerInsight.placementProbability,
     );
+    notifyListeners();
+  }
+
+  // Update Faculty Profile
+  void updateFacultyProfile(FacultyProfessionalProfile updated) {
+    _facultyProfile = updated;
+    notifyListeners();
+  }
+
+  // AI Optimization for Faculty Professional Dossier & Research Bio
+  void optimizeFacultyProfileWithAi() {
+    const aiBio = "Distinguished Academician & Senior Systems Researcher. Specializes in Sovereign Edge AI, Distributed Byzantine Fault Tolerance, High-Performance Compilers, and AICTE Curriculum Engineering.";
+    final recommendedSkills = ["Edge AI Optimization", "Federated Learning", "Byzantine Fault Tolerance", "System Verilog", "Distributed Consensus"];
+    final updatedSkills = List<String>.from(_facultyProfile.professionalSkills);
+    for (final s in recommendedSkills) {
+      if (!updatedSkills.contains(s)) {
+        updatedSkills.add(s);
+      }
+    }
+    _facultyProfile = _facultyProfile.copyWith(
+      bio: aiBio,
+      professionalSkills: updatedSkills,
+    );
+    notifyListeners();
+  }
+
+  // Add Faculty Skill
+  void addFacultySkill(String skill) {
+    final trimmed = skill.trim();
+    if (trimmed.isEmpty || _facultyProfile.professionalSkills.contains(trimmed)) return;
+    final updated = List<String>.from(_facultyProfile.professionalSkills)..add(trimmed);
+    _facultyProfile = _facultyProfile.copyWith(professionalSkills: updated);
+    notifyListeners();
+  }
+
+  // Remove Faculty Skill
+  void removeFacultySkill(String skill) {
+    final updated = List<String>.from(_facultyProfile.professionalSkills)..remove(skill);
+    _facultyProfile = _facultyProfile.copyWith(professionalSkills: updated);
     notifyListeners();
   }
 
@@ -557,12 +669,484 @@ class CampusProvider extends ChangeNotifier {
       outDateTime: outDateTime,
       expectedInDateTime: expectedInDateTime,
       status: "Approved",
-      approvedBy: "Warden Prof. Arvind Sharma (Digital Seal)",
+      approvedBy: "Chief Warden Prof. Arvind Sharma",
       qrPayload: "DIGITAL_CAMPUS_${newId}_STU_${_student.rollNumber}_AUTHORIZED",
+      studentName: _student.name,
+      rollNumber: _student.rollNumber,
+      parentPhone: "+91 98260 11400",
+      isCurfewBreached: false,
     );
     _gatePasses.insert(0, pass);
     notifyListeners();
   }
+
+  void approveGatePass(String passId) {
+    final idx = _gatePasses.indexWhere((p) => p.id == passId);
+    if (idx != -1) {
+      _gatePasses[idx] = _gatePasses[idx].copyWith(
+        status: "Approved",
+        approvedBy: "Chief Warden (Digital Seal)",
+      );
+      notifyListeners();
+    }
+  }
+
+  void rejectGatePass(String passId) {
+    final idx = _gatePasses.indexWhere((p) => p.id == passId);
+    if (idx != -1) {
+      _gatePasses[idx] = _gatePasses[idx].copyWith(
+        status: "Rejected",
+        approvedBy: "Rejected by Chief Warden",
+      );
+      notifyListeners();
+    }
+  }
+
+  void logGatePassCheckOut(String passId) {
+    final idx = _gatePasses.indexWhere((p) => p.id == passId);
+    if (idx != -1) {
+      _gatePasses[idx] = _gatePasses[idx].copyWith(
+        status: "Out of Campus",
+      );
+      notifyListeners();
+    }
+  }
+
+  void logGatePassCheckIn(String passId) {
+    final idx = _gatePasses.indexWhere((p) => p.id == passId);
+    if (idx != -1) {
+      _gatePasses[idx] = _gatePasses[idx].copyWith(
+        status: "Closed",
+        isCurfewBreached: false,
+      );
+      notifyListeners();
+    }
+  }
+
+  void submitHostelMaintenanceTicket({
+    required String category,
+    required String description,
+    required String urgency,
+  }) {
+    final newTicket = HostelMaintenanceTicket(
+      id: "HMT-2026-0${_hostelMaintenanceTickets.length + 85}",
+      roomNumber: _hostel.roomNumber,
+      studentName: _student.name,
+      rollNumber: _student.rollNumber,
+      category: category,
+      description: description,
+      urgency: urgency,
+      status: "Reported",
+      assignedStaff: urgency == "Critical" ? "Duty Caretaker (Urgent SLA 4h)" : "Assigned: Campus Maintenance Staff",
+      reportedAt: "Today, Just Now",
+    );
+    _hostelMaintenanceTickets.insert(0, newTicket);
+    notifyListeners();
+  }
+
+  void resolveHostelMaintenanceTicket(String ticketId) {
+    final idx = _hostelMaintenanceTickets.indexWhere((t) => t.id == ticketId);
+    if (idx != -1) {
+      _hostelMaintenanceTickets[idx] = _hostelMaintenanceTickets[idx].copyWith(
+        status: "Resolved",
+        resolvedAt: "Today, Just Now",
+      );
+      notifyListeners();
+    }
+  }
+
+  void assignHostelMaintenanceTicket(String ticketId, String staffName) {
+    final idx = _hostelMaintenanceTickets.indexWhere((t) => t.id == ticketId);
+    if (idx != -1) {
+      _hostelMaintenanceTickets[idx] = _hostelMaintenanceTickets[idx].copyWith(
+        status: "Assigned",
+        assignedStaff: staffName,
+      );
+      notifyListeners();
+    }
+  }
+
+  void approveMessRebate(String rebateId) {
+    final idx = _messRebates.indexWhere((r) => r.id == rebateId);
+    if (idx != -1) {
+      _messRebates[idx] = _messRebates[idx].copyWith(
+        status: "Approved & Credited",
+      );
+      notifyListeners();
+    }
+  }
+
+  void submitMessMealFeedback({
+    required String mealType,
+    required int rating,
+    required String comment,
+  }) {
+    final feedback = MessMealFeedback(
+      id: "MF-0${_messFeedbacks.length + 1}",
+      mealType: mealType,
+      rating: rating,
+      comment: comment,
+      timestamp: "Today, Just Now",
+    );
+    _messFeedbacks.insert(0, feedback);
+    notifyListeners();
+  }
+
+  void submitMessRebateClaim({
+    required String startDate,
+    required String endDate,
+    required int days,
+    required String reason,
+  }) {
+    final claim = MessRebateClaim(
+      id: "REB-2026-${110 + _messRebates.length}",
+      studentName: _student.name,
+      rollNumber: _student.rollNumber,
+      startDate: startDate,
+      endDate: endDate,
+      days: days,
+      rebateAmount: days * 120.0,
+      reason: reason,
+      status: "Approved",
+    );
+    _messRebates.insert(0, claim);
+    notifyListeners();
+  }
+
+  void updateHostelFeePolicy(HostelFeePolicy newPolicy) {
+    _hostelFeePolicy = newPolicy;
+    // Dynamically adjust student fee invoice in the ledger
+    final feeIdx = _fees.indexWhere((f) => f.id == "FEE-HOSTEL-S2");
+    if (feeIdx != -1) {
+      final totalNew = newPolicy.tripleRoomAcRent + (newPolicy.messDailyRate * 120) + newPolicy.wifiAndAmenitiesFee;
+      _fees[feeIdx] = FeeItem(
+        id: "FEE-HOSTEL-S2",
+        title: "Hostel & Mess Charges (Term 2)",
+        amount: totalNew,
+        dueDate: "2026-08-10",
+        isPaid: _fees[feeIdx].isPaid,
+        paidDate: _fees[feeIdx].paidDate,
+        transactionId: _fees[feeIdx].transactionId,
+        receiptNumber: _fees[feeIdx].receiptNumber,
+      );
+    }
+    notifyListeners();
+  }
+
+  void submitRoomSwapRequest({
+    required String targetRoll,
+    required String targetName,
+    required String targetRoom,
+    required String reason,
+  }) {
+    final swap = RoomSwapRequest(
+      id: "SWAP-2026-0${_roomSwaps.length + 15}",
+      requesterStudentName: _student.name,
+      requesterRoll: _student.rollNumber,
+      currentRoom: _hostel.roomNumber,
+      targetStudentName: targetName,
+      targetRoll: targetRoll,
+      targetRoom: targetRoom,
+      reason: reason,
+      status: "Peer Approved",
+      timestamp: "Today (Just Now)",
+    );
+    _roomSwaps.insert(0, swap);
+    notifyListeners();
+  }
+
+  void approveRoomSwapByWarden(String swapId) {
+    final idx = _roomSwaps.indexWhere((s) => s.id == swapId);
+    if (idx != -1) {
+      _roomSwaps[idx] = _roomSwaps[idx].copyWith(status: "Warden Approved");
+      notifyListeners();
+    }
+  }
+
+  void bookFacilitySlot(String slotId) {
+    final idx = _facilitySlots.indexWhere((s) => s.id == slotId);
+    if (idx != -1) {
+      _facilitySlots[idx] = _facilitySlots[idx].copyWith(
+        status: "Booked",
+        bookedByRoll: _student.rollNumber,
+      );
+      notifyListeners();
+    }
+  }
+
+  void cancelFacilitySlot(String slotId) {
+    final idx = _facilitySlots.indexWhere((s) => s.id == slotId);
+    if (idx != -1) {
+      _facilitySlots[idx] = _facilitySlots[idx].copyWith(
+        status: "Available",
+        bookedByRoll: "",
+      );
+      notifyListeners();
+    }
+  }
+
+  void triggerHostelSos({String reason = "Hostel Medical / Security Panic Alarm"}) {
+    _isSosActive = true;
+    final log = HostelEmergencySosLog(
+      id: "SOS-2026-${1000 + _hostelSosLogs.length * 17}",
+      studentName: _student.name,
+      rollNumber: _student.rollNumber,
+      roomNumber: _hostel.roomNumber,
+      block: _hostel.blockName,
+      triggerTime: "Active Alert: Just Now",
+      status: "TRIGGERED",
+      resolvedBy: "Campus QRT Alert Dispatched",
+    );
+    _hostelSosLogs.insert(0, log);
+    notifyListeners();
+  }
+
+  void resolveHostelSos(String id) {
+    _isSosActive = false;
+    final idx = _hostelSosLogs.indexWhere((l) => l.id == id);
+    if (idx != -1) {
+      _hostelSosLogs[idx] = _hostelSosLogs[idx].copyWith(
+        status: "RESOLVED",
+        resolvedBy: "Chief Warden & QRT Cleared",
+      );
+    }
+    notifyListeners();
+  }
+
+  void simulateTurnstileScan(String gatePassId) {
+    final idx = _gatePasses.indexWhere((p) => p.id == gatePassId);
+    if (idx != -1) {
+      final current = _gatePasses[idx];
+      String nextStatus = "Out of Campus";
+      if (current.status == "Out of Campus") {
+        nextStatus = "Closed";
+      } else if (current.status == "Closed") {
+        nextStatus = "Approved";
+      }
+      _gatePasses[idx] = current.copyWith(status: nextStatus);
+      notifyListeners();
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 6 Ultra-Smart Hostel Innovations Actions
+  // -------------------------------------------------------------
+
+  // 1. Roommate Matchmaking & Gale-Shapley Algorithm
+  void toggleRoommateSelfDiscovery(bool enable) {
+    _matchmakerSetting = _matchmakerSetting.copyWith(isSelfDiscoveryEnabled: enable);
+    notifyListeners();
+  }
+
+  void updateRoommateQuiz({
+    required String sleepCycle,
+    required String studyEnvironment,
+    required String acPreference,
+    required String cleanliness,
+    required List<String> interests,
+  }) {
+    _roommateQuiz = _roommateQuiz.copyWith(
+      sleepCycle: sleepCycle,
+      studyEnvironment: studyEnvironment,
+      acPreference: acPreference,
+      cleanliness: cleanliness,
+      interests: interests,
+      isQuizCompleted: true,
+    );
+    notifyListeners();
+  }
+
+  void runGaleShapleyMatchmaking() {
+    _roommateCandidates.sort((a, b) => b.compatibilityScore.compareTo(a.compatibilityScore));
+    final bestMatch = _roommateCandidates.first;
+    _roommateQuiz = _roommateQuiz.copyWith(
+      matchedRoommateRoll: bestMatch.rollNumber,
+      matchedRoommateName: bestMatch.studentName,
+      compatibilityScore: bestMatch.compatibilityScore,
+      assignedRoom: "B-304",
+    );
+    _matchmakerSetting = _matchmakerSetting.copyWith(
+      matchedPairsCount: _matchmakerSetting.matchedPairsCount + 1,
+      isAutoAllocationActive: true,
+    );
+    notifyListeners();
+  }
+
+  void selectRoommateDirectly(RoommateQuizProfile candidate) {
+    _roommateQuiz = _roommateQuiz.copyWith(
+      matchedRoommateRoll: candidate.rollNumber,
+      matchedRoommateName: candidate.studentName,
+      compatibilityScore: candidate.compatibilityScore,
+      assignedRoom: "B-304",
+    );
+    notifyListeners();
+  }
+
+  // 2. AI Predictive Mess Headcount & Food Waste Minimizer
+  void toggleDiningIntent({
+    required String mealType,
+    required String intent, // "ATTENDING" or "SKIPPING"
+  }) {
+    final idx = _diningIntents.indexWhere((i) => i.studentRoll == _student.rollNumber && i.mealType == mealType);
+    if (idx != -1) {
+      _diningIntents[idx] = _diningIntents[idx].copyWith(
+        intent: intent,
+        updatedAt: "Today, Just Now",
+      );
+    } else {
+      _diningIntents.insert(0, DiningIntentRecord(
+        id: "INT-${DateTime.now().millisecondsSinceEpoch}",
+        studentRoll: _student.rollNumber,
+        studentName: _student.name,
+        date: "Today",
+        mealType: mealType,
+        intent: intent,
+        updatedAt: "Today, Just Now",
+      ));
+    }
+
+    int attendingDelta = intent == "SKIPPING" ? -1 : 1;
+    int newAttending = (_messForecast.expectedDiningCount + attendingDelta).clamp(0, _messForecast.totalHostellers);
+    int newSkipping = (_messForecast.voluntarySkippingCount - attendingDelta).clamp(0, _messForecast.totalHostellers);
+    double recommendedRice = (newAttending * 0.123).clamp(20.0, 60.0);
+    double savedKg = (_messForecast.baselineRiceKg - recommendedRice).clamp(0.0, 30.0);
+    double savedRs = savedKg * 248.0;
+
+    _messForecast = MessHeadcountForecast(
+      date: _messForecast.date,
+      mealType: _messForecast.mealType,
+      totalHostellers: _messForecast.totalHostellers,
+      expectedDiningCount: newAttending,
+      gatePassOutCount: _messForecast.gatePassOutCount,
+      voluntarySkippingCount: newSkipping,
+      recommendedRiceKg: double.parse(recommendedRice.toStringAsFixed(1)),
+      baselineRiceKg: _messForecast.baselineRiceKg,
+      foodSavedKg: double.parse(savedKg.toStringAsFixed(1)),
+      dailyRupeesSaved: double.parse(savedRs.toStringAsFixed(0)),
+      annualProjectedSavings: _messForecast.annualProjectedSavings,
+      chefAlertMessage: "Chef Alert: Tonight $newAttending students are dining ($savedKg kg rice saved, ₹${savedRs.toStringAsFixed(0)} saved today).",
+    );
+    notifyListeners();
+  }
+
+  // 3. Anti-Ragging Silent Duress Secret PIN
+  bool verifyAndTriggerDuressPin(String enteredPin) {
+    if (enteredPin == _silentDuress.secretDuressPin) {
+      _isSilentDuressTriggered = true;
+      _silentDuress = _silentDuress.copyWith(
+        isDuressTriggered: true,
+        triggeredAt: "ALERT: Active Just Now",
+        dispatchStatus: "🚨 Silent Red Alert: Campus QRT & Chief Warden Dispatched to Room B-304",
+      );
+      _hostelSosLogs.insert(0, HostelEmergencySosLog(
+        id: "DURESS-${DateTime.now().millisecondsSinceEpoch % 100000}",
+        studentName: _student.name,
+        rollNumber: _student.rollNumber,
+        roomNumber: _hostel.roomNumber,
+        block: _hostel.blockName,
+        triggerTime: "Active Silent Duress Alert",
+        status: "TRIGGERED",
+        resolvedBy: "🚨 Silent QRT Coordinates Dispatched: B-304 (Lat: 23.2599, Long: 77.4126)",
+      ));
+      notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  void resolveSilentDuress() {
+    _isSilentDuressTriggered = false;
+    _silentDuress = _silentDuress.copyWith(
+      isDuressTriggered: false,
+      dispatchStatus: "RESOLVED & STANDBY",
+    );
+    notifyListeners();
+  }
+
+  // 4. AI Computer Vision Room Damage & Caution Deposit Audit
+  void completeAssetCheckOutInspection(String assetId) {
+    final idx = _roomAssetInspections.indexWhere((a) => a.id == assetId);
+    if (idx != -1) {
+      _roomAssetInspections[idx] = _roomAssetInspections[idx].copyWith(
+        checkOutDate: "Today (Verified)",
+        checkOutCondition: "AI Vision Scan: 0.00% Structural Damage, Normal Wear Cleared",
+        checkOutSha256Hash: "SHA256:d41d8cd98f00b204e9800998ecf8427e${idx}b304",
+        damageScore: 0.0,
+        cautionDeduction: 0.0,
+        auditStatus: "REFUND_APPROVED",
+      );
+      notifyListeners();
+    }
+  }
+
+  // 5. Green Dorm Energy Quota & Eco-Credits
+  void recordGreenEnergyLoad(double loadWatts) {
+    double updatedUnits = _greenDormEnergy.consumedUnits + (loadWatts / 1000.0) * 0.1;
+    double remaining = (_greenDormEnergy.monthlyQuotaUnits - updatedUnits).clamp(0.0, 120.0);
+    _greenDormEnergy = _greenDormEnergy.copyWith(
+      liveLoadWatts: loadWatts,
+      consumedUnits: double.parse(updatedUnits.toStringAsFixed(1)),
+      remainingUnits: double.parse(remaining.toStringAsFixed(1)),
+      ecoCredits: _greenDormEnergy.ecoCredits + (loadWatts < 400 ? 5 : 0),
+    );
+    notifyListeners();
+  }
+
+  // 6. Curfew Auto-Extension with Parent WhatsApp 1-Click Consent
+  void requestCurfewExtension({
+    required int extensionMinutes,
+    required String reason,
+  }) {
+    final newExt = CurfewExtensionRequest(
+      id: "EXT-2026-${_curfewExtensions.length + 90}",
+      gatePassId: _gatePasses.isNotEmpty ? _gatePasses.first.id : "GP-2026-089",
+      studentRoll: _student.rollNumber,
+      studentName: _student.name,
+      roomNumber: _hostel.roomNumber,
+      originalCurfewTime: "08:30 PM",
+      requestedExtensionMinutes: extensionMinutes,
+      extendedCurfewTime: extensionMinutes == 45 ? "09:15 PM" : "09:30 PM",
+      reason: reason,
+      parentConsentStatus: "PENDING",
+      wardenApprovalStatus: "AUTO_APPROVED",
+      isFineWaived: true,
+    );
+    _curfewExtensions.insert(0, newExt);
+    notifyListeners();
+  }
+
+  void approveCurfewExtensionByParent(String requestId) {
+    final idx = _curfewExtensions.indexWhere((e) => e.id == requestId);
+    if (idx != -1) {
+      _curfewExtensions[idx] = _curfewExtensions[idx].copyWith(
+        parentConsentStatus: "APPROVED",
+        parentConsentTimestamp: "Today, Just Now (WhatsApp 1-Click)",
+        wardenApprovalStatus: "AUTO_APPROVED",
+        isFineWaived: true,
+      );
+      if (_gatePasses.isNotEmpty) {
+        _gatePasses[0] = _gatePasses[0].copyWith(
+          expectedInDateTime: "Today, 09:15 PM (Extended)",
+          isCurfewBreached: false,
+        );
+      }
+      notifyListeners();
+    }
+  }
+
+  void rejectCurfewExtensionByParent(String requestId) {
+    final idx = _curfewExtensions.indexWhere((e) => e.id == requestId);
+    if (idx != -1) {
+      _curfewExtensions[idx] = _curfewExtensions[idx].copyWith(
+        parentConsentStatus: "REJECTED",
+        parentConsentTimestamp: "Today, Just Now",
+        wardenApprovalStatus: "DENIED",
+      );
+      notifyListeners();
+    }
+  }
+
+
 
   // Submit Grievance Ticket
   void submitGrievance({
@@ -671,6 +1255,7 @@ class CampusProvider extends ChangeNotifier {
       adminProfile: _adminProfile,
       parentProfile: _parentProfile,
       semesterRegistrations: _semesterRegistrations,
+      classAttendanceRecords: _classAttendanceRecords,
       timetable: _timetable,
       busRoute: _busRoute,
       fees: _fees,
@@ -1103,4 +1688,78 @@ class CampusProvider extends ChangeNotifier {
     _notifications.insert(0, notif);
     notifyListeners();
   }
+
+  // ── Adaptive Quizzes & Examination Engine ──────────────────────────
+  void createQuiz(CampusQuiz newQuiz) {
+    _quizzes.insert(0, newQuiz);
+    notifyListeners();
+  }
+
+  void submitQuiz(QuizSubmission submission) {
+    _quizSubmissions.removeWhere((s) => s.quizId == submission.quizId && s.studentId == submission.studentId);
+    _quizSubmissions.add(submission);
+
+    // Update quiz metrics
+    final quizIndex = _quizzes.indexWhere((q) => q.id == submission.quizId);
+    if (quizIndex != -1) {
+      final quizSubs = _quizSubmissions.where((s) => s.quizId == submission.quizId).toList();
+      double total = 0;
+      double highest = 0;
+      for (var s in quizSubs) {
+        total += s.score;
+        if (s.score > highest) highest = s.score;
+      }
+      final avg = quizSubs.isNotEmpty ? total / quizSubs.length : 0.0;
+      _quizzes[quizIndex] = _quizzes[quizIndex].copyWith(
+        totalSubmissions: quizSubs.length,
+        classAverageScore: double.parse(avg.toStringAsFixed(1)),
+        highestScore: highest,
+      );
+    }
+    notifyListeners();
+  }
+
+  List<LeaderboardEntry> getLeaderboardForQuiz(String quizId, {String? currentStudentRoll}) {
+    final subs = _quizSubmissions.where((s) => s.quizId == quizId).toList();
+    // Sort: Score DESC, then TimeTaken ASC (tie-breaker)
+    subs.sort((a, b) {
+      final scoreComp = b.score.compareTo(a.score);
+      if (scoreComp != 0) return scoreComp;
+      return a.timeTakenSeconds.compareTo(b.timeTakenSeconds);
+    });
+
+    return subs.asMap().entries.map((entry) {
+      final rank = entry.key + 1;
+      final s = entry.value;
+      return LeaderboardEntry(
+        rank: rank,
+        studentName: s.studentName,
+        rollNumber: s.rollNumber,
+        branch: s.branch,
+        semester: s.semester,
+        score: s.score,
+        totalMarks: s.totalPossibleMarks,
+        timeTakenSeconds: s.timeTakenSeconds,
+        accuracy: s.accuracyPercentage,
+        isCurrentStudent: currentStudentRoll != null && s.rollNumber == currentStudentRoll,
+      );
+    }).toList();
+  }
+
+  CampusQuiz? getQuizById(String id) {
+    try {
+      return _quizzes.firstWhere((q) => q.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  QuizSubmission? getStudentSubmission(String quizId, String studentId) {
+    try {
+      return _quizSubmissions.firstWhere((s) => s.quizId == quizId && s.studentId == studentId);
+    } catch (_) {
+      return null;
+    }
+  }
 }
+

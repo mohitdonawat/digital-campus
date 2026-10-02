@@ -6,6 +6,7 @@ import '../../core/constants/app_constants.dart';
 import '../../models/campus_models.dart';
 import '../../providers/campus_provider.dart';
 import '../attendance/attendance_screen.dart';
+import '../attendance/dynamic_attendance_qr_modal.dart';
 import '../timetable/timetable_screen.dart';
 import '../fees/fee_payment_screen.dart';
 import '../certificates/digital_certificates_screen.dart';
@@ -19,6 +20,10 @@ import '../registration/semester_registration_screen.dart';
 import '../registration/faculty_registration_desk_screen.dart';
 import '../account/professional_account_screen.dart';
 import '../helpdesk/helpdesk_screen.dart';
+import '../timetable/in_app_live_classroom_screen.dart';
+import '../../core/services/whatsapp_alert_service.dart';
+import '../../core/services/document_download_service.dart';
+import '../../data/campus_database.dart';
 
 class AiVoiceAssistantScreen extends StatefulWidget {
   const AiVoiceAssistantScreen({super.key});
@@ -538,7 +543,49 @@ class _AiVoiceAssistantScreenState extends State<AiVoiceAssistantScreen> with Si
   }
 
   void _handleActionClick(BuildContext context, String action, CampusProvider provider) {
-    if (action.contains("Registration") || action.contains("Course") || action.contains("Desk") || action.contains("Verification")) {
+    if (action.contains("Dynamic QR") || action.contains("Launch Dynamic QR") || action.contains("QR Code")) {
+      DynamicAttendanceQrModal.show(
+        context,
+        subjectCode: "CS-601",
+        subjectName: "Operating Systems & System Software",
+        room: "LH-302 (Smart Hall)",
+        isFaculty: provider.currentRole == UserRole.faculty || provider.currentRole == UserRole.admin,
+      );
+    } else if (action.contains("Live Studio") || action.contains("Enter Live") || action.contains("Live Classroom") || action.contains("Start Live")) {
+      final session = provider.liveClasses.isNotEmpty
+          ? provider.liveClasses.first
+          : CampusDatabase.initialLiveClasses.first;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InAppLiveClassroomScreen(
+            session: session,
+            isFaculty: provider.currentRole == UserRole.faculty || provider.currentRole == UserRole.admin,
+          ),
+        ),
+      );
+    } else if (action.contains("WhatsApp") || action.contains("Dispatch WhatsApp")) {
+      final defaulter = provider.classAttendanceRecords.firstWhere(
+        (s) => s.attendancePercentage < 75.0,
+        orElse: () => provider.classAttendanceRecords.first,
+      );
+      WhatsAppAlertService.showDispatchBottomSheet(context, defaulter);
+    } else if (action.contains("Download Lecture Notes") || action.contains("Export PDF") || action.contains("PDF Notes")) {
+      DocumentDownloadService.downloadLectureNotesPdf(
+        context,
+        "Machine Learning & AI (CS-601)",
+        "Dr. Mohit Donawat",
+        "Backpropagation & Multivariate Chain Rule",
+      );
+    } else if (action.contains("Punch Attendance") || action.contains("Biometric Check-in")) {
+      provider.simulateAttendanceCheckIn("CS-601");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("✓ Biometric In-Class Attendance successfully punched & synchronized to ERP!"),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } else if (action.contains("Registration") || action.contains("Course") || action.contains("Desk") || action.contains("Verification")) {
       if (provider.currentRole == UserRole.faculty || provider.currentRole == UserRole.admin) {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const FacultyRegistrationDeskScreen()));
       } else {

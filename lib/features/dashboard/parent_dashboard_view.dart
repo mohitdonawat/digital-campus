@@ -9,6 +9,10 @@ import '../fees/fee_payment_screen.dart';
 import '../ai_analytics/predictive_performance_screen.dart';
 import '../transport/transport_screen.dart';
 import '../account/professional_account_screen.dart';
+import '../helpdesk/helpdesk_screen.dart';
+import '../hostel/hostel_screen.dart';
+import '../../models/campus_models.dart';
+import '../../core/widgets/glass_card.dart';
 
 /// Ultra-Clean, Uncluttered Parent Dashboard
 class ParentDashboardView extends StatelessWidget {
@@ -58,10 +62,24 @@ class ParentDashboardView extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            // ── 5. LIVE TRANSIT / BUS GLANCE ──────────────────────────────────
+            // ── 5. GRIEVANCES & HELPDESK ──────────────────────────────────────
+            _buildSectionTitle("GRIEVANCES & HELPDESK"),
+            const SizedBox(height: 8),
+            GrievanceSummaryCard(role: UserRole.parent),
+
+            const SizedBox(height: 18),
+
+            // ── 6. LIVE TRANSIT / BUS GLANCE ──────────────────────────────────
             _buildSectionTitle("LIVE BUS TRANSIT"),
             const SizedBox(height: 8),
             _buildTransitGlanceCard(context, provider),
+
+            const SizedBox(height: 18),
+
+            // ── 7. WARD HOSTEL RESIDENCE & LIVE SAFETY RADAR ──────────────────
+            _buildSectionTitle("WARD HOSTEL RESIDENCE & SAFETY RADAR"),
+            const SizedBox(height: 8),
+            _buildWardHostelRadarCard(context, provider),
 
             const SizedBox(height: 24),
           ],
@@ -365,8 +383,14 @@ class ParentDashboardView extends StatelessWidget {
       _ParentTool("Bus Transit", Icons.directions_bus_rounded, const Color(0xFFD97706), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const TransportScreen()));
       }),
+      _ParentTool("Hostel & Room", Icons.hotel_rounded, const Color(0xFF6366F1), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const HostelScreen()));
+      }),
       _ParentTool("Performance", Icons.trending_up_rounded, const Color(0xFF7C3AED), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const PredictivePerformanceScreen()));
+      }),
+      _ParentTool("Helpdesk", Icons.support_agent_rounded, const Color(0xFFE11D48), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpdeskScreen()));
       }),
     ];
 
@@ -486,7 +510,288 @@ class ParentDashboardView extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildWardHostelRadarCard(BuildContext context, CampusProvider provider) {
+    final hostel = provider.hostel;
+    final gatePasses = provider.gatePasses;
+    final latestPass = gatePasses.isNotEmpty ? gatePasses.first : null;
+    final isOut = latestPass != null && latestPass.status == "Out of Campus";
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.hotel_rounded, color: Color(0xFF6366F1), size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${hostel.blockName} • Room ${hostel.roomNumber}",
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "Chief Warden: ${hostel.wardenName}",
+                      style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isOut ? const Color(0xFFFEF3C7) : const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isOut ? "OUT OF CAMPUS" : "SAFE IN CAMPUS",
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: isOut ? const Color(0xFFB45309) : const Color(0xFF15803D),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
+
+          // 1. Curfew Auto-Extension 1-Click Consent Desk
+          Builder(
+            builder: (ctx) {
+              final extList = provider.curfewExtensions.where((e) => e.studentRoll == provider.student.rollNumber).toList();
+              if (extList.isEmpty) return const SizedBox.shrink();
+              final ext = extList.first;
+
+              if (ext.parentConsentStatus == "PENDING") {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFF59E0B), width: 1.2),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.notification_important_rounded, size: 16, color: Color(0xFFD97706)),
+                          SizedBox(width: 6),
+                          Text(
+                            "CURFEW EXTENSION REQUEST (PARENT CONSENT)",
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF92400E)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "Ward requested +${ext.requestedExtensionMinutes} mins late return until ${ext.extendedCurfewTime}.\nReason: ${ext.reason}",
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF78350F), height: 1.3),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                provider.approveCurfewExtensionByParent(ext.id);
+                                GoBackendService.submitParentCurfewConsent(extensionId: ext.id, decision: "APPROVED");
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Extension approved until ${ext.extendedCurfewTime}. Turnstile updated with zero fine!"),
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.check_circle_rounded, size: 15),
+                              label: const Text("Approve Extension"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.success,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            onPressed: () {
+                              provider.rejectCurfewExtensionByParent(ext.id);
+                              GoBackendService.submitParentCurfewConsent(extensionId: ext.id, decision: "REJECTED");
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Extension request declined."), backgroundColor: AppColors.error),
+                              );
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              side: const BorderSide(color: AppColors.error),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text("Reject"),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              } else if (ext.parentConsentStatus == "APPROVED") {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF86EFAC)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.verified_rounded, size: 15, color: AppColors.success),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "Curfew Extended to ${ext.extendedCurfewTime} • Parent approved with zero penalty.",
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF15803D)),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+
+          // 2. Caution Deposit Shield Badge
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEF2FF),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFC7D2FE)),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.security_rounded, size: 15, color: Color(0xFF6366F1)),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Caution Deposit Protected: ₹5,000 Safe via SHA-256 Digital Asset Bond (4/4 Assets Certified)",
+                    style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFF4338CA)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Row(
+            children: const [
+              Icon(Icons.shield_rounded, size: 14, color: AppColors.success),
+              SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  "Curfew Verification: Ward is in compliance with 08:30 PM security check-in.",
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          if (latestPass != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.badge_rounded, size: 14, color: Color(0xFF64748B)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "Recent Pass: ${latestPass.reason} ➔ ${latestPass.destination} (${latestPass.status})",
+                      style: const TextStyle(fontSize: 11, color: AppColors.textDark, fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Calling Warden ${hostel.wardenName} (${hostel.wardenPhone})..."), backgroundColor: AppColors.primary),
+                    );
+                  },
+                  icon: const Icon(Icons.call_rounded, size: 14),
+                  label: const Text("Call Warden"),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.borderLight),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const HostelScreen()));
+                  },
+                  icon: const Icon(Icons.open_in_new_rounded, size: 14),
+                  label: const Text("Hostel Portal"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6366F1),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
+
 
 class _ParentTool {
   final String title;

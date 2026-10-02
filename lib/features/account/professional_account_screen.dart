@@ -8,6 +8,7 @@ import '../../core/services/document_download_service.dart';
 import '../../models/campus_models.dart';
 import '../../providers/campus_provider.dart';
 import '../lifecycle/edit_profile_screen.dart';
+import '../faculty/faculty_edit_dossier_screen.dart';
 import '../splash/landing_splash_screen.dart';
 
 class ProfessionalAccountScreen extends StatefulWidget {
@@ -90,20 +91,36 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
           IconButton(
             onPressed: () {
               HapticFeedback.mediumImpact();
-              DocumentDownloadService.downloadProfessionalCvPdf(context, student);
+              if (role == UserRole.faculty) {
+                DocumentDownloadService.downloadFacultyDossierPdf(context, provider.facultyProfile);
+              } else {
+                DocumentDownloadService.downloadProfessionalCvPdf(context, student);
+              }
             },
             icon: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary),
-            tooltip: "Download Verified CV / Dossier PDF",
+            tooltip: role == UserRole.faculty ? "Download Verified Faculty Dossier PDF" : "Download Verified CV / Dossier PDF",
+          ),
+          IconButton(
+            onPressed: () => _showDigitalQrVerificationModal(context, provider, role),
+            icon: const Icon(Icons.qr_code_2_rounded, color: AppColors.primary),
+            tooltip: "View Real-Time Digital Verification QR",
           ),
           IconButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-              );
+              if (role == UserRole.faculty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                );
+              }
             },
             icon: const Icon(Icons.edit_note_rounded, color: AppColors.textDark),
-            tooltip: "Edit Basic Information",
+            tooltip: role == UserRole.faculty ? "Build & Edit Faculty Dossier" : "Edit Basic Information",
           ),
         ],
       ),
@@ -154,7 +171,7 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
             _buildPortfolioTab(context, provider, student, role),
             _buildGovtLockerTab(context, provider, student, role),
             _buildSkillsTab(context, provider, student, role),
-            _buildSecurityTab(context, provider, student),
+            _buildSecurityTab(context, provider, student, role),
           ],
         ),
       ),
@@ -303,7 +320,77 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
+
+          // Real Digital QR Verified Attestation Badge
+          InkWell(
+            onTap: () => _showDigitalQrVerificationModal(context, provider, role),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [roleColor.withOpacity(0.12), roleColor.withOpacity(0.04)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: roleColor.withOpacity(0.35)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.qr_code_2_rounded, size: 26, color: roleColor),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              role == UserRole.faculty
+                                  ? "AICTE / UGC VERIFIED PROFESSOR CREDENTIAL"
+                                  : (role == UserRole.admin
+                                      ? "CHANCELLOR STATUTORY SEAL VERIFIED"
+                                      : "GOVT APAAR / ABC DIGITAL CREDENTIAL"),
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                color: roleColor,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.verified_rounded, size: 13, color: AppColors.success),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "SHA-256: ${role == UserRole.faculty ? '4F9E-1082-CSEC-8819' : (role == UserRole.admin ? 'E3B0-C442-GOVT-0012' : '9842-1082-9901-4456')} • Live Verified: 02-Oct-2026",
+                          style: const TextStyle(fontSize: 8.5, color: AppColors.textMuted, fontFamily: 'monospace'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: roleColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      "VIEW QR",
+                      style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w900, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
           const Divider(height: 1, color: AppColors.borderLight),
           const SizedBox(height: 10),
 
@@ -445,18 +532,31 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
                 child: ElevatedButton.icon(
                   onPressed: () {
                     HapticFeedback.mediumImpact();
-                    provider.optimizeProfileWithAi();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("✨ AI optimized Headline, Bio & Placement Index successfully!"),
-                        backgroundColor: AppColors.success,
-                      ),
-                    );
+                    if (role == UserRole.faculty) {
+                      provider.optimizeFacultyProfileWithAi();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("✨ AI synthesized Faculty Bio, Research Pitch & Core Skills!"),
+                          backgroundColor: Color(0xFF7C3AED),
+                        ),
+                      );
+                    } else {
+                      provider.optimizeProfileWithAi();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("✨ AI optimized Headline, Bio & Placement Index successfully!"),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.auto_fix_high_rounded, size: 16),
-                  label: const Text("AI Optimize Profile", style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+                  label: Text(
+                    role == UserRole.faculty ? "AI Optimize Dossier" : "AI Optimize Profile",
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: role == UserRole.faculty ? const Color(0xFF7C3AED) : AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -467,10 +567,20 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
               ElevatedButton.icon(
                 onPressed: () {
                   HapticFeedback.lightImpact();
-                  DocumentDownloadService.downloadProfessionalCvPdf(context, student);
+                  if (role == UserRole.faculty) {
+                    DocumentDownloadService.downloadFacultyDossierPdf(context, provider.facultyProfile);
+                  } else {
+                    DocumentDownloadService.downloadProfessionalCvPdf(context, student);
+                  }
                 },
-                icon: const Icon(Icons.download_rounded, size: 16),
-                label: const Text("CV PDF", style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+                icon: Icon(
+                  role == UserRole.faculty ? Icons.picture_as_pdf_rounded : Icons.download_rounded,
+                  size: 16,
+                ),
+                label: Text(
+                  role == UserRole.faculty ? "Faculty Dossier" : "CV PDF",
+                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white.withOpacity(0.12),
                   foregroundColor: Colors.white,
@@ -575,6 +685,14 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
 
   // ── Tab 2: Govt Locker & Credentials ──────────────────────────────────────
   Widget _buildGovtLockerTab(BuildContext context, CampusProvider provider, StudentProfile student, UserRole role) {
+    if (role == UserRole.faculty) {
+      return _buildFacultyCredentialsTab(context, provider.facultyProfile);
+    } else if (role == UserRole.admin) {
+      return _buildAdminCredentialsTab(context, provider.adminProfile);
+    } else if (role == UserRole.parent) {
+      return _buildParentCredentialsTab(context, provider.parentProfile);
+    }
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -677,6 +795,14 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
 
   // ── Tab 3: Skills & Certifications ─────────────────────────────────────────
   Widget _buildSkillsTab(BuildContext context, CampusProvider provider, StudentProfile student, UserRole role) {
+    if (role == UserRole.faculty) {
+      return _buildFacultyAcademicLoadTab(context, provider.facultyProfile);
+    } else if (role == UserRole.admin) {
+      return _buildAdminGovernanceTab(context, provider.adminProfile);
+    } else if (role == UserRole.parent) {
+      return _buildParentWardStatusTab(context, provider.parentProfile, student);
+    }
+
     final aiInsight = provider.aiCareerInsight;
 
     return ListView(
@@ -786,7 +912,13 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
   }
 
   // ── Tab 4: Security & App Preferences ──────────────────────────────────────
-  Widget _buildSecurityTab(BuildContext context, CampusProvider provider, StudentProfile student) {
+  Widget _buildSecurityTab(BuildContext context, CampusProvider provider, StudentProfile student, UserRole role) {
+    if (role == UserRole.faculty) {
+      return _buildFacultySecurityTab(context, provider.facultyProfile);
+    } else if (role == UserRole.admin) {
+      return _buildAdminSecurityTab(context, provider.adminProfile);
+    }
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -902,37 +1034,929 @@ class _ProfessionalAccountScreenState extends State<ProfessionalAccountScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // 0. Build / Edit Faculty Dossier Command Banner
+        Container(
+          padding: const EdgeInsets.all(14),
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF7C3AED), Color(0xFF4C1D95)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF7C3AED).withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Faculty Dossier Studio",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      "Add skills, publications, patents, teaching load & research grants",
+                      style: TextStyle(fontSize: 10.5, color: Color(0xFFE9D5FF)),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  HapticFeedback.heavyImpact();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+                  );
+                },
+                icon: const Icon(Icons.edit_rounded, size: 14),
+                label: const Text("Build Dossier", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF7C3AED),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 1. Academic Qualifications & Faculty Dossier
         _buildInfoCard(
-          title: "ACADEMIC QUALIFICATIONS & DOSSIER",
-          subtitle: "Accredited University Credentials",
+          title: "ACADEMIC QUALIFICATIONS & FACULTY DOSSIER",
+          subtitle: "Accredited University Credentials & Postdoctoral Research",
+          trailingAction: "Edit Info",
+          onAction: () {
+            HapticFeedback.mediumImpact();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+            );
+          },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(fac.qualifications, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+              Text(
+                fac.qualifications,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark, height: 1.3),
+              ),
               const SizedBox(height: 6),
-              Text("Cabin: ${fac.cabinNumber} • Hours: ${fac.officeHours}", style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+              Text(
+                "Designation: ${fac.designation}\nDepartment: ${fac.department}\nOffice: ${fac.cabinNumber} • Office Hours: ${fac.officeHours}\nContact: ${fac.phone} • ${fac.email}",
+                style: const TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.35),
+              ),
+              if (fac.bio.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    fac.bio,
+                    style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Color(0xFF334155)),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7C3AED).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF7C3AED).withOpacity(0.3)),
+                    ),
+                    child: Text("${fac.experienceYears}+ Yrs Academic Experience", style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: Color(0xFF7C3AED))),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF059669).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF059669).withOpacity(0.3)),
+                    ),
+                    child: const Text("Tenured Full-Time H.O.D.", style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: Color(0xFF059669))),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
         const SizedBox(height: 14),
+
+        // 2. Professional Skills & Core Competencies Card
+        _buildInfoCard(
+          title: "PROFESSIONAL SKILLS & CORE COMPETENCIES",
+          subtitle: "Technical Domains & Advanced Systems Specializations",
+          trailingAction: "+ Add / Edit",
+          onAction: () {
+            HapticFeedback.mediumImpact();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+            );
+          },
+          child: fac.professionalSkills.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("No professional skills listed. Tap '+ Add / Edit' to build your stack!", style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                )
+              : Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: fac.professionalSkills.map((skill) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7C3AED).withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFF7C3AED).withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.check_circle_rounded, size: 12, color: Color(0xFF7C3AED)),
+                          const SizedBox(width: 5),
+                          Text(
+                            skill,
+                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF6D28D9)),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+        ),
+        const SizedBox(height: 14),
+
+        // 3. Scholarly Research Impact Metrics Matrix (6 Metrics)
         Row(
           children: [
-            Expanded(child: _buildMetricTile("Papers", "${fac.papersPublished} Published", "IEEE / Scopus", Icons.article_rounded, AppColors.primary)),
-            const SizedBox(width: 10),
-            Expanded(child: _buildMetricTile("Citations", "${fac.citationsCount} Citations", "h-index: 12", Icons.format_quote_rounded, const Color(0xFF7C3AED))),
-            const SizedBox(width: 10),
-            Expanded(child: _buildMetricTile("Rating", "${fac.studentFeedbackRating} / 5.0", "Student Reviews", Icons.star_rounded, const Color(0xFFD97706))),
+            Expanded(child: _buildMetricTile("Publications", "${fac.papersPublished} Papers", "IEEE / Scopus Indexed", Icons.article_rounded, const Color(0xFF7C3AED))),
+            const SizedBox(width: 8),
+            Expanded(child: _buildMetricTile("Citations", "${fac.citationsCount}+ Cited", "Impact Quotient", Icons.format_quote_rounded, AppColors.primary)),
+            const SizedBox(width: 8),
+            Expanded(child: _buildMetricTile("h & i10 Index", "h-${fac.hIndex} • i10-${fac.i10Index}", "Google Scholar Metric", Icons.insights_rounded, const Color(0xFF059669))),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(child: _buildMetricTile("Patents", "${fac.patentsGranted} Granted", "Govt of India IPR", Icons.military_tech_rounded, const Color(0xFFD97706))),
+            const SizedBox(width: 8),
+            Expanded(child: _buildMetricTile("R&D Grants", "₹52.5 Lakhs", "DST-SERB / AICTE PI", Icons.account_balance_wallet_rounded, const Color(0xFF2563EB))),
+            const SizedBox(width: 8),
+            Expanded(child: _buildMetricTile("Student Rating", "${fac.studentFeedbackRating} / 5.0", "Apex University Top 1%", Icons.star_rounded, const Color(0xFFE11D48))),
           ],
         ),
         const SizedBox(height: 14),
+
+        // 4. Published Research Papers List (Dynamic)
         _buildInfoCard(
-          title: "CURRENT TEACHING ALLOCATION",
-          subtitle: "Semester 6 Academic Load",
+          title: "PUBLISHED RESEARCH PAPERS & CHAPTERS",
+          subtitle: "Verified Scopus & IEEE Indexed Publications",
+          trailingAction: "+ Add Paper",
+          onAction: () {
+            HapticFeedback.mediumImpact();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+            );
+          },
           child: Column(
-            children: fac.subjectsTaught.map((s) => _buildDocItem(s, "Lead Course Professor", Icons.menu_book_rounded)).toList(),
+            children: fac.publicationsList.map((pub) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: _buildDocItem(
+                  pub,
+                  "Peer-Reviewed Publication • Indexed Citation Record",
+                  Icons.article_rounded,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // 5. Intellectual Property & Patents Granted (Dynamic)
+        _buildInfoCard(
+          title: "PATENTS & INTELLECTUAL PROPERTY GRANTED",
+          subtitle: "Official Indian Patent Office (IPO) Registry",
+          trailingAction: "+ Add Patent",
+          onAction: () {
+            HapticFeedback.mediumImpact();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+            );
+          },
+          child: Column(
+            children: fac.patentsList.map((pat) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: _buildDocItem(
+                  pat,
+                  "Government of India IPO • Commercial Academic Rights",
+                  Icons.military_tech_rounded,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // 6. Sponsored R&D Grants & Research Labs
+        _buildInfoCard(
+          title: "SPONSORED RESEARCH PROJECTS & GRANTS",
+          subtitle: "DST-SERB, AICTE & Industry Research Schemes",
+          trailingAction: "+ Add Grant",
+          onAction: () {
+            HapticFeedback.mediumImpact();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+            );
+          },
+          child: Column(
+            children: fac.grantsList.map((grant) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: _buildDocItem(
+                  grant,
+                  "Sanctioned R&D Scheme • Principal Investigator (PI)",
+                  Icons.account_balance_wallet_rounded,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // 7. Academic Honours & Institutional Distinctions
+        _buildInfoCard(
+          title: "HONOURS, FELLOWSHIPS & AWARDS",
+          subtitle: "National AICTE & University Senate Recognitions",
+          trailingAction: "+ Add Award",
+          onAction: () {
+            HapticFeedback.mediumImpact();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+            );
+          },
+          child: Column(
+            children: fac.awards.map((award) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: _buildDocItem(
+                  award,
+                  "Institutional Distinction & Merit Citation",
+                  Icons.emoji_events_rounded,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // 8. Research Domains & Ph.D. Guidance
+        _buildInfoCard(
+          title: "RESEARCH DOMAINS & PH.D. SUPERVISION",
+          subtitle: "Active Doctoral Guidance & Specialized Labs",
+          trailingAction: "+ Edit",
+          onAction: () {
+            HapticFeedback.mediumImpact();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+            );
+          },
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: fac.researchDomains.map((domain) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF059669).withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF059669).withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.science_rounded, size: 12, color: Color(0xFF059669)),
+                    const SizedBox(width: 5),
+                    Text(
+                      domain,
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF065F46)),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // 9. Current Semester Teaching Allocation (Dynamic)
+        _buildInfoCard(
+          title: "CURRENT TEACHING ALLOCATION & COURSES",
+          subtitle: "Semester Academic Curriculum Load",
+          trailingAction: "+ Add Course",
+          onAction: () {
+            HapticFeedback.mediumImpact();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+            );
+          },
+          child: Column(
+            children: fac.subjectsTaught.map((s) => _buildDocItem(s, "Core Teaching Professor • Theory + Practical Lab (4 Credits)", Icons.menu_book_rounded)).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // 10. Direct Action Button: Download Official Dossier
+        ElevatedButton.icon(
+          onPressed: () {
+            HapticFeedback.mediumImpact();
+            DocumentDownloadService.downloadFacultyDossierPdf(context, fac);
+          },
+          icon: const Icon(Icons.picture_as_pdf_rounded, size: 18),
+          label: const Text("Download Verified Faculty Dossier & CV (PDF)", style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF7C3AED),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
       ],
+    );
+  }
+
+  // ── Faculty Credentials Tab (Tab 2 for Teacher) ───────────────────────────
+  Widget _buildFacultyCredentialsTab(BuildContext context, FacultyProfessionalProfile fac) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // AICTE / UGC National Faculty Portal Verification
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFAF5FF),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFD8B4FE), width: 1.2),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF7C3AED),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.verified_user_rounded, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "AICTE National Faculty Portal: Verified",
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF6B21A8),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "Faculty UID: ${fac.id} • AICTE Faculty Registry Validated for NAAC A++",
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF7E22CE)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // AICTE Faculty ID Card
+        _buildGovtIdCard(
+          title: "AICTE NATIONAL FACULTY IDENTIFIER",
+          idNumber: "AICTE-FAC-2018-9421",
+          badge: "Govt of India MHRD",
+          badgeColor: const Color(0xFF7C3AED),
+          subtitle: "Centralized AICTE Faculty Cadre Registry (Full-Time Approved Cadre)",
+          icon: Icons.badge_rounded,
+        ),
+        const SizedBox(height: 14),
+
+        // UGC NET / JRF Fellowship Record
+        _buildGovtIdCard(
+          title: "UGC NET / JRF FELLOWSHIP CREDENTIAL",
+          idNumber: "UGC-JRF-CS-881902",
+          badge: "Senior Research Fellow",
+          badgeColor: AppColors.primary,
+          subtitle: "University Grants Commission National Eligibility Test - Computer Science (Top 0.5% Percentile)",
+          icon: Icons.school_rounded,
+        ),
+        const SizedBox(height: 14),
+
+        // Official Academic Service Book Repository
+        _buildInfoCard(
+          title: "OFFICIAL UNIVERSITY SERVICE BOOK & RECORDS",
+          subtitle: "Cryptographically Sealed Faculty Service Dossier",
+          child: Column(
+            children: [
+              _buildDocItem("Ph.D. Doctoral Degree & Thesis Defense", "IIT Roorkee • 'Distributed Edge Neural Architectures' (2017)", Icons.history_edu_rounded),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem("M.Tech Computer Science & Engineering", "IIT Roorkee • CGPA: 9.40 (Gold Medalist 2013)", Icons.workspace_premium_rounded),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem("Permanent Institutional Tenure & Service Book", "Apex Institute of Tech • 7th CPC Level 13A Scale (Attested)", Icons.verified_rounded),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem("NPS National Pension Scheme PRAN", "PRAN: 1100-9842-1092 • PFRDA Verified Government Retirement Account", Icons.account_balance_rounded),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Faculty Academic Load Tab (Tab 3 for Teacher) ─────────────────────────
+  Widget _buildFacultyAcademicLoadTab(BuildContext context, FacultyProfessionalProfile fac) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Teaching Workload Summary
+        _buildInfoCard(
+          title: "SEMESTER 6 TEACHING WORKLOAD (18 CREDIT HOURS/WEEK)",
+          subtitle: "Statutory UGC/AICTE Weekly Faculty Load Compliance",
+          child: Column(
+            children: [
+              _buildDocItem(
+                "CS-601: Machine Learning & AI (Theory)",
+                "Mon, Wed, Fri • 09:30 AM - 10:25 AM • LH-302 (62 Students Enrolled • 84.2% Class Attendance)",
+                Icons.cast_for_education_rounded,
+              ),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem(
+                "CS-604: Advanced Compiler Design (Theory)",
+                "Tue, Thu • 11:45 AM - 01:15 PM • LH-204 (58 Students Enrolled • 81.6% Class Attendance)",
+                Icons.memory_rounded,
+              ),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem(
+                "CS-601P: Advanced AI & Computing Lab",
+                "Tue • 02:00 PM - 05:00 PM • Advanced Computing Lab 3 (Batch A1 & A2 • 32 Students)",
+                Icons.biotech_rounded,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Research Scholars Guided
+        _buildInfoCard(
+          title: "RESEARCH SCHOLARS & THESES GUIDED",
+          subtitle: "Postgraduate & Doctoral Research Supervision",
+          child: Column(
+            children: [
+              _buildDocItem(
+                "Doctoral (Ph.D.) Research Scholars (3 Guided)",
+                "2 Scholars Awarded Degree, 1 Ongoing in Federated Learning & Indic NLP",
+                Icons.group_rounded,
+              ),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem(
+                "Postgraduate (M.Tech) Theses (8 Completed)",
+                "All 8 theses published in IEEE Transactions / Springer Scopus Journals",
+                Icons.school_rounded,
+              ),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem(
+                "Undergraduate Capstone Projects (4 Teams)",
+                "Team 02 won Smart India Hackathon (SIH 2025) National Gold Trophy",
+                Icons.emoji_events_rounded,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Pedagogical Student Evaluation Rating
+        _buildInfoCard(
+          title: "MANDATORY STUDENT PEDAGOGICAL EVALUATION",
+          subtitle: "AICTE / NAAC Statutory Anonymous Feedback Radar",
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.star_rounded, color: Color(0xFFD97706), size: 24),
+                      const SizedBox(width: 6),
+                      Text("${fac.studentFeedbackRating} / 5.0", style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.textDark)),
+                    ],
+                  ),
+                  const CustomChip(label: "96.4% EXCELLENT", color: AppColors.success),
+                ],
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Evaluated across 182 students in CS-601 & CS-604: High praise for Socratic debugging, Feynman real-world analogies, and hands-on lab problem sets.",
+                style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.35),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Faculty Security Tab (Tab 4 for Teacher) ──────────────────────────────
+  Widget _buildFacultySecurityTab(BuildContext context, FacultyProfessionalProfile fac) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Faculty Hardware Gate & RFID
+        _buildInfoCard(
+          title: "FACULTY HARDWARE SECURITY & CABIN GATE",
+          subtitle: "Encrypted RFID Smart Token Access",
+          child: Column(
+            children: [
+              _buildDocItem("Hardware RFID Keycard UID", "88:12:FA:C7:90 (Academic Block A, Cabin 302, Server Room)", Icons.nfc_rounded),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem("Biometric Attendance Terminal", "FaceID / Fingerprint Registered (Block A Terminal 01)", Icons.fingerprint_rounded),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem("Examination Gradebook Signing Key", "COE-SIGN-2026-CS-007 (Cryptographic Token Authorized)", Icons.key_rounded),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Active Faculty Sessions
+        _buildInfoCard(
+          title: "ACTIVE FACULTY SESSIONS",
+          subtitle: "Authorized Campus Devices",
+          child: Column(
+            children: [
+              _buildSessionItem("MacBook Pro M2 (Department HOD Cabin)", "Faculty VLAN 10.42.0.12 • Active Now", Icons.laptop_mac_rounded, true),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildSessionItem("Advanced AI Lab Workstation 01", "Campus Academic Block A • 3 hours ago", Icons.desktop_windows_rounded, false),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+
+        // Session Management & Direct Sign-Out Card
+        _buildInfoCard(
+          title: "SESSION MANAGEMENT & LOGOUT",
+          subtitle: "Safely end faculty session",
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => _confirmLogout(context),
+            icon: const Icon(Icons.logout_rounded, size: 18),
+            label: const Text("Log Out Faculty Session", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Admin Credentials & Security Tabs ─────────────────────────────────────
+  Widget _buildAdminCredentialsTab(BuildContext context, AdminProfessionalProfile adm) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildGovtIdCard(
+          title: "STATUTORY UNIVERSITY DIRECTORATE CHARTER",
+          idNumber: "UGC-AUTONOMOUS-2022-MP-04",
+          badge: "UGC Autonomous Statutory Board",
+          badgeColor: const Color(0xFFD97706),
+          subtitle: "State Government & UGC Gazette Notification of Autonomous Status",
+          icon: Icons.account_balance_rounded,
+        ),
+        const SizedBox(height: 14),
+        _buildGovtIdCard(
+          title: "NAAC ACCREDITATION CERTIFICATE",
+          idNumber: "NAAC-CYCLE-3-A++-3.78",
+          badge: "Highest Grade A++",
+          badgeColor: AppColors.success,
+          subtitle: "National Assessment and Accreditation Council Apex Grade",
+          icon: Icons.verified_rounded,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdminGovernanceTab(BuildContext context, AdminProfessionalProfile adm) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildInfoCard(
+          title: "INSTITUTIONAL GOVERNANCE CADRE & CAPACITY",
+          subtitle: "Official AICTE / UGC Mandatory Disclosure Metrics",
+          child: Column(
+            children: [
+              _buildDocItem("Students Under Governance", "${adm.totalStudentsUnderGovernance} Full-Time Students", Icons.people_alt_rounded),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem("Faculty-to-Student Cadre Ratio", "1:15 Compliant across 6 Engineering Departments", Icons.badge_rounded),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem("Pending Statutory Audit Actions", "${adm.pendingAuditActions} Actions (Exam Roll Clearance, Medical Leave SLA)", Icons.fact_check_rounded),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdminSecurityTab(BuildContext context, AdminProfessionalProfile adm) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildInfoCard(
+          title: "MASTER REGISTRAR CRYPTOGRAPHIC ROOT AUTHORITY",
+          subtitle: "Statutory Certificate Attestation Master Key",
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: AppColors.surfaceSubtle, borderRadius: BorderRadius.circular(10)),
+            child: Text(adm.digitalSigningKeyHash, style: const TextStyle(fontSize: 10, fontFamily: 'monospace', color: AppColors.textDark)),
+          ),
+        ),
+        const SizedBox(height: 14),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+          onPressed: () => _confirmLogout(context),
+          icon: const Icon(Icons.logout_rounded, size: 18),
+          label: const Text("Log Out Chancellor Session", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+        ),
+      ],
+    );
+  }
+
+  // ── Parent Credentials & Ward Tabs ────────────────────────────────────────
+  Widget _buildParentCredentialsTab(BuildContext context, ParentProfessionalProfile par) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildGovtIdCard(
+          title: "LEGAL GUARDIAN AADHAAR KYC STATUS",
+          idNumber: "AADHAAR-KYC-VERIFIED-9842",
+          badge: "UIDAI OTP Verified",
+          badgeColor: const Color(0xFF059669),
+          subtitle: "Legally Linked Parent/Guardian Account for Ward ${par.wardName}",
+          icon: Icons.fingerprint_rounded,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildParentWardStatusTab(BuildContext context, ParentProfessionalProfile par, StudentProfile student) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildInfoCard(
+          title: "WARD LIVE ACADEMIC & ATTENDANCE RADAR",
+          subtitle: "Real-time institutional oversight for ${student.name}",
+          child: Column(
+            children: [
+              _buildDocItem("Live Cumulative Attendance", "${student.attendancePercentage}% Compliant with 75% AICTE rule", Icons.check_circle_rounded),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem("Academic Performance SGPA", "${student.currentCgpa} / 10.0 (First Class with Distinction)", Icons.grade_rounded),
+              const Divider(height: 14, color: AppColors.borderLight),
+              _buildDocItem("Campus Transit Bus Route", "${student.busRouteNumber} (Live GPS Tracking Active)", Icons.directions_bus_rounded),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Interactive Digital QR Verification Modal ─────────────────────────────
+  void _showDigitalQrVerificationModal(BuildContext context, CampusProvider provider, UserRole role) {
+    final student = provider.student;
+    final faculty = provider.facultyProfile;
+    final admin = provider.adminProfile;
+    final parent = provider.parentProfile;
+
+    String name = student.name;
+    String id = student.rollNumber;
+    String roleLabel = "STUDENT";
+    Color roleColor = AppColors.primary;
+    String shaHash = "SHA256:9842108299014456a1b2c3d4e5f67890";
+
+    if (role == UserRole.faculty) {
+      name = faculty.name;
+      id = faculty.id;
+      roleLabel = "FACULTY / PROFESSOR";
+      roleColor = const Color(0xFF7C3AED);
+      shaHash = "SHA256:4f9e1082csec881902789123456789ab";
+    } else if (role == UserRole.admin) {
+      name = admin.name;
+      id = admin.id;
+      roleLabel = "DEAN & DIRECTOR";
+      roleColor = const Color(0xFFD97706);
+      shaHash = admin.digitalSigningKeyHash;
+    } else if (role == UserRole.parent) {
+      name = parent.guardianName;
+      id = "PARENT-STU-${student.rollNumber}";
+      roleLabel = "LEGAL GUARDIAN";
+      roleColor = const Color(0xFF059669);
+      shaHash = "SHA256:059669guard98421082776655443322";
+    }
+
+    final now = DateTime.now();
+    final timestamp = "${now.day.toString().padLeft(2, '0')}-${now.month.toString().padLeft(2, '0')}-${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')} IST";
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(22, 16, 22, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 44, height: 4, decoration: BoxDecoration(color: AppColors.borderLight, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 18),
+
+              // Title Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.verified_rounded, color: roleColor, size: 22),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Cryptographically Verified Credential",
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: roleColor),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                "Digital Campus University Cloud • Statutory AICTE & UGC Compliance",
+                style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 18),
+
+              // Real Digital QR Matrix Display
+              Container(
+                width: 190,
+                height: 190,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: roleColor.withOpacity(0.4), width: 2),
+                  boxShadow: [
+                    BoxShadow(color: roleColor.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, 4)),
+                  ],
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // High-contrast QR matrix pattern icon
+                    Icon(Icons.qr_code_2_rounded, size: 160, color: roleColor),
+                    // Center security lock badge
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: roleColor, width: 2),
+                      ),
+                      child: Icon(Icons.security_rounded, size: 20, color: roleColor),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Credential Metadata
+              Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.textDark)),
+              const SizedBox(height: 3),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(color: roleColor.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                    child: Text(roleLabel, style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: roleColor)),
+                  ),
+                  const SizedBox(width: 8),
+                  Text("ID: $id", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textSecondary)),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Hash and Attestation Stamp
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: AppColors.surfaceSubtle, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight)),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Attestation Authority:", style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                        const Text("Registrar & COE (Autonomous)", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Live Verification Time:", style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                        Text(timestamp, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            shaHash,
+                            style: const TextStyle(fontSize: 9, fontFamily: 'monospace', color: AppColors.textMuted),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: shaHash));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Cryptographic SHA-256 Hash copied!"), backgroundColor: AppColors.success),
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Icon(Icons.copy_rounded, size: 14, color: AppColors.primary),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Close Button
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: roleColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text("Done & Verified", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

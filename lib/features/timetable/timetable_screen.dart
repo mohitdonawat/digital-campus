@@ -11,6 +11,8 @@ import '../../data/campus_database.dart';
 import '../study_assistant/vernacular_study_assistant_screen.dart';
 import '../ai_assistant/ai_voice_assistant_screen.dart';
 import '../../core/services/document_download_service.dart';
+import 'in_app_live_classroom_screen.dart';
+import '../attendance/dynamic_attendance_qr_modal.dart';
 
 class TimetableScreen extends StatefulWidget {
   const TimetableScreen({super.key});
@@ -497,30 +499,66 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
                 // Action Buttons
                 Row(
                   children: [
-                    // 1. Launch in Jitsi / Google Meet / Zoom Directly
+                    // 1. Enter In-App Smart Classroom Studio (Zero Exit)
                     Expanded(
                       flex: 3,
                       child: ElevatedButton.icon(
                         onPressed: () {
                           HapticFeedback.heavyImpact();
-                          _launchMeetingUrl(context, session.meetingUrl);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => InAppLiveClassroomScreen(
+                                session: session,
+                                isFaculty: isFaculty,
+                              ),
+                            ),
+                          );
                         },
-                        icon: const Icon(Icons.open_in_browser_rounded, size: 15, color: Colors.white),
-                        label: Text(
-                          "Join on ${session.platform.shortName}",
-                          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Colors.white),
+                        icon: const Icon(Icons.sensors_rounded, size: 16, color: Colors.white),
+                        label: const Text(
+                          "Enter Live Studio",
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4F46E5),
-                          padding: const EdgeInsets.symmetric(vertical: 9),
+                          backgroundColor: const Color(0xFF2563EB),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                          elevation: 0,
+                          elevation: 1,
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
 
-                    // 2. Open In-App Smart Class Room (with chat, doubts, attendance)
+                    // 2. Faculty Dynamic QR Launcher
+                    if (isFaculty) ...[
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          HapticFeedback.heavyImpact();
+                          DynamicAttendanceQrModal.show(
+                            context,
+                            subjectCode: session.subjectCode,
+                            subjectName: session.title,
+                            room: session.room,
+                            isFaculty: true,
+                          );
+                        },
+                        icon: const Icon(Icons.qr_code_2_rounded, size: 15, color: Colors.white),
+                        label: const Text(
+                          "Dynamic QR",
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0D9488),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                          elevation: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+
+                    // 3. Open In-App Smart Class Room (with chat, doubts, attendance)
                     Expanded(
                       flex: 2,
                       child: OutlinedButton.icon(
@@ -637,11 +675,19 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
                     onPressed: () {
                       HapticFeedback.heavyImpact();
                       provider.startLiveClass(session.id);
-                      _launchMeetingUrl(context, session.meetingUrl);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => InAppLiveClassroomScreen(
+                            session: session,
+                            isFaculty: true,
+                          ),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.sensors_rounded, size: 14, color: Colors.white),
-                    label: const Text("Start Class Now", style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, elevation: 0),
+                    label: const Text("Start Class Now (In-App)", style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Colors.white)),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB), elevation: 0),
                   ),
                 )
               else
@@ -1345,7 +1391,15 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
                             );
                             provider.scheduleLiveClass(newSession);
                             Navigator.pop(ctx);
-                            _launchMeetingUrl(context, newSession.meetingUrl);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => InAppLiveClassroomScreen(
+                                  session: newSession,
+                                  isFaculty: true,
+                                ),
+                              ),
+                            );
                           },
                           icon: const Icon(Icons.sensors_rounded, size: 16, color: Colors.white),
                           label: const Text("Go Live Now", style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
@@ -1713,22 +1767,61 @@ class _TimetableScreenState extends State<TimetableScreen> with SingleTickerProv
                         ),
                         const SizedBox(height: 10),
 
-                        // Direct Launch Meeting Button
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            _launchMeetingUrl(context, session.meetingUrl);
-                          },
-                          icon: const Icon(Icons.open_in_browser_rounded, size: 14, color: Colors.white),
-                          label: Text(
-                            "Open Video on ${session.platform.shortName}",
-                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Colors.white),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4F46E5),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                            elevation: 0,
-                          ),
+                        // Direct Launch In-App Classroom & Dynamic QR Buttons
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          alignment: WrapAlignment.center,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => InAppLiveClassroomScreen(
+                                      session: session,
+                                      isFaculty: isFaculty,
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.fullscreen_rounded, size: 16, color: Colors.white),
+                              label: const Text(
+                                "Enter Live Studio",
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                elevation: 0,
+                              ),
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                HapticFeedback.heavyImpact();
+                                DynamicAttendanceQrModal.show(
+                                  context,
+                                  subjectCode: session.subjectCode,
+                                  subjectName: session.title,
+                                  room: session.room,
+                                  isFaculty: isFaculty,
+                                );
+                              },
+                              icon: Icon(isFaculty ? Icons.qr_code_2_rounded : Icons.qr_code_scanner_rounded, size: 15, color: Colors.white),
+                              label: Text(
+                                isFaculty ? "Launch Dynamic QR" : "Scan Class QR",
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isFaculty ? const Color(0xFF0D9488) : const Color(0xFF059669),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                elevation: 0,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

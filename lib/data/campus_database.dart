@@ -294,6 +294,34 @@ class CampusDatabase {
   // Digital E-Gate Passes
   static final List<GatePass> gatePasses = [
     const GatePass(
+      id: "GP-2026-9022",
+      reason: "Semester Exam Book Purchase & Stationers",
+      destination: "MP Nagar Zone 2, Bhopal",
+      outDateTime: "2026-10-02 04:00 PM",
+      expectedInDateTime: "2026-10-02 08:00 PM",
+      status: "Pending",
+      approvedBy: "Awaiting Chief Warden Signature",
+      qrPayload: "DIGITAL_CAMPUS_GP_9022_PENDING",
+      studentName: "Vikas Mehra",
+      rollNumber: "CS22B052",
+      parentPhone: "+91 98270 33900",
+      isCurfewBreached: false,
+    ),
+    const GatePass(
+      id: "GP-2026-8910",
+      reason: "Late Evening Project Discussion",
+      destination: "DB City Tech Hub",
+      outDateTime: "2026-10-02 03:30 PM",
+      expectedInDateTime: "2026-10-02 08:30 PM",
+      status: "Out of Campus",
+      approvedBy: "Prof. Arvind Sharma (Gate Out 03:45 PM)",
+      qrPayload: "DIGITAL_CAMPUS_GP_8910_OVERDUE",
+      studentName: "Aditya Kulshreshtha",
+      rollNumber: "CS22B099",
+      parentPhone: "+91 94251 77889",
+      isCurfewBreached: true,
+    ),
+    const GatePass(
       id: "GP-2026-8841",
       reason: "Weekend Family Visit & Medical Checkup",
       destination: "Indore (Home)",
@@ -302,6 +330,10 @@ class CampusDatabase {
       status: "Approved",
       approvedBy: "Warden Prof. Arvind Sharma",
       qrPayload: "DIGITAL_CAMPUS_GP_8841_STU_CS22B045_AUTHORIZED",
+      studentName: "Rahul Sharma",
+      rollNumber: "CS22B045",
+      parentPhone: "+91 94250 88991",
+      isCurfewBreached: false,
     ),
     const GatePass(
       id: "GP-2026-8712",
@@ -312,8 +344,459 @@ class CampusDatabase {
       status: "Closed",
       approvedBy: "Security Desk Scan",
       qrPayload: "DIGITAL_CAMPUS_GP_8712_COMPLETED",
+      studentName: "Aman Verma",
+      rollNumber: "CS22B019",
+      parentPhone: "+91 98260 11400",
+      isCurfewBreached: false,
     ),
   ];
+
+  // Hostel Maintenance Tickets (24h SLA)
+  static final List<HostelMaintenanceTicket> hostelMaintenanceTickets = [
+    const HostelMaintenanceTicket(
+      id: "HMT-2026-081",
+      roomNumber: "B-304",
+      studentName: "Rahul Sharma",
+      rollNumber: "CS22B045",
+      category: "Electrical",
+      description: "Ceiling fan running at regulator speed 1 only, needs capacitor replacement.",
+      urgency: "Normal",
+      status: "Assigned",
+      assignedStaff: "Ramesh Sharma (Campus Electrician)",
+      reportedAt: "Today, 10:30 AM",
+    ),
+    const HostelMaintenanceTicket(
+      id: "HMT-2026-074",
+      roomNumber: "B-304",
+      studentName: "Aman Verma",
+      rollNumber: "CS22B019",
+      category: "Wi-Fi / LAN",
+      description: "LAN port wall socket loose, frequent packet drop during lab coding tests.",
+      urgency: "Normal",
+      status: "Resolved",
+      assignedStaff: "Sunil IT Cell",
+      reportedAt: "Yesterday, 02:15 PM",
+      resolvedAt: "Yesterday, 06:30 PM",
+    ),
+    const HostelMaintenanceTicket(
+      id: "HMT-2026-068",
+      roomNumber: "B-302",
+      studentName: "Vikas Mehra",
+      rollNumber: "CS22B052",
+      category: "Plumbing",
+      description: "Washroom tap continuous dripping, water wastage concern.",
+      urgency: "Critical",
+      status: "Reported",
+      assignedStaff: "Pending Assignment",
+      reportedAt: "Today, 01:00 PM",
+    ),
+    const HostelMaintenanceTicket(
+      id: "HMT-2026-062",
+      roomNumber: "A-110",
+      studentName: "Pooja Patel",
+      rollNumber: "EC22B012",
+      category: "Housekeeping",
+      description: "Deep corridor cleaning and dustbin sanitation needed for wing A.",
+      urgency: "Normal",
+      status: "Reported",
+      assignedStaff: "Campus Housekeeping Wing",
+      reportedAt: "Today, 11:15 AM",
+    ),
+  ];
+
+  // Mess Meal Feedback & Rating (4-Meal Daily Nutrition Radar)
+  static final List<MessMealFeedback> messMealFeedbacks = [
+    const MessMealFeedback(
+      id: "MF-01",
+      mealType: "Breakfast",
+      rating: 4,
+      comment: "Aloo Paratha & Curd was fresh and hot. Good hygiene maintained.",
+      timestamp: "Today 08:45 AM",
+    ),
+    const MessMealFeedback(
+      id: "MF-02",
+      mealType: "Lunch",
+      rating: 5,
+      comment: "Paneer Butter Masala was well cooked and served on time.",
+      timestamp: "Today 01:30 PM",
+    ),
+    const MessMealFeedback(
+      id: "MF-03",
+      mealType: "High Tea",
+      rating: 4,
+      comment: "Crispy Veg Cutlets with Adrak Chai were excellent.",
+      timestamp: "Today 05:20 PM",
+    ),
+    const MessMealFeedback(
+      id: "MF-04",
+      mealType: "Dinner",
+      rating: 5,
+      comment: "Kheer and Mix Veg quality was top-notch.",
+      timestamp: "Today 08:40 PM",
+    ),
+  ];
+
+  // Mess Rebate / Leave Claims
+  static final List<MessRebateClaim> messRebates = [
+    const MessRebateClaim(
+      id: "REB-2026-104",
+      studentName: "Rahul Sharma",
+      rollNumber: "CS22B045",
+      startDate: "2026-10-10",
+      endDate: "2026-10-14",
+      days: 4,
+      rebateAmount: 480.0,
+      reason: "Diwali Fest Family Visit",
+      status: "Approved",
+    ),
+  ];
+
+  // Hostel Block Occupancy Radar
+  static final List<HostelBlockOccupancy> hostelBlocksOccupancy = [
+    const HostelBlockOccupancy(
+      blockId: "BLK-A",
+      blockName: "Aryabhatta Bhawan (Senior Boys)",
+      type: "Boys",
+      totalCapacity: 150,
+      occupiedBeds: 142,
+      vacantBeds: 8,
+      wardenName: "Dr. K.P. Singh",
+      wardenPhone: "+91 94250 11990",
+    ),
+    const HostelBlockOccupancy(
+      blockId: "BLK-B",
+      blockName: "Ramanujan Bhawan (Junior Boys)",
+      type: "Boys",
+      totalCapacity: 150,
+      occupiedBeds: 138,
+      vacantBeds: 12,
+      wardenName: "Prof. Arvind Sharma",
+      wardenPhone: "+91 98930 44556",
+    ),
+    const HostelBlockOccupancy(
+      blockId: "BLK-C",
+      blockName: "Gargi Bhawan (Girls Wing)",
+      type: "Girls",
+      totalCapacity: 150,
+      occupiedBeds: 132,
+      vacantBeds: 18,
+      wardenName: "Dr. Pratibha Mishra",
+      wardenPhone: "+91 98261 77334",
+    ),
+  ];
+
+  // Enterprise StarRez / Cloudbeds / IIT BITS Smart Hostel Datasets
+  static final List<RoomSwapRequest> roomSwapRequests = [
+    const RoomSwapRequest(
+      id: "SWAP-2026-012",
+      requesterStudentName: "Rahul Sharma",
+      requesterRoll: "CS22B045",
+      currentRoom: "B-304 (Block B)",
+      targetStudentName: "Amit Verma",
+      targetRoll: "CS22B088",
+      targetRoom: "A-210 (Block A)",
+      reason: "Closer to High-Performance Computing Research Lab & Mutual Consent",
+      status: "Peer Approved",
+      timestamp: "Yesterday, 04:30 PM",
+    ),
+  ];
+
+  static final List<HostelFacilitySlot> hostelFacilitySlots = [
+    const HostelFacilitySlot(
+      id: "FAC-LAUNDRY-01",
+      facilityName: "Smart IoT Washer 01 (Speed Queen 12kg)",
+      slotTime: "Today 05:00 PM - 05:45 PM",
+      bookedByRoll: "CS22B019",
+      status: "Active",
+    ),
+    const HostelFacilitySlot(
+      id: "FAC-LAUNDRY-02",
+      facilityName: "Smart IoT Washer 02 (Speed Queen 12kg)",
+      slotTime: "Today 06:00 PM - 06:45 PM",
+      bookedByRoll: "",
+      status: "Available",
+    ),
+    const HostelFacilitySlot(
+      id: "FAC-STUDY-04",
+      facilityName: "Acoustic Quiet Study Pod #04",
+      slotTime: "Tonight 09:00 PM - 11:00 PM",
+      bookedByRoll: "CS22B045",
+      status: "Booked",
+    ),
+    const HostelFacilitySlot(
+      id: "FAC-GYM-01",
+      facilityName: "Hostel Iron Den Gym (Evening Slot)",
+      slotTime: "Today 06:30 PM - 07:30 PM",
+      bookedByRoll: "",
+      status: "Available",
+    ),
+  ];
+
+  static const RoommateCompatibilityProfile roommateProfile = RoommateCompatibilityProfile(
+    name: "Rohan Joshi",
+    rollNumber: "IT22B019",
+    branch: "B.Tech Information Technology",
+    compatibilityScore: 96,
+    sleepHabit: "Night Owl (01:00 AM - 07:30 AM)",
+    diet: "Vegetarian / Campus Mess",
+    studyHabit: "Deep Focus / Silent Study",
+  );
+
+  static const HostelEnergyMeter hostelEnergyMeter = HostelEnergyMeter(
+    roomNumber: "B-304",
+    currentKwhToday: 4.2,
+    monthlyKwh: 114.6,
+    liveLoadWatts: 340.0,
+    isOverloadAlert: false,
+  );
+
+  static final List<HostelEmergencySosLog> hostelSosLogs = [
+    const HostelEmergencySosLog(
+      id: "SOS-2026-9901",
+      studentName: "Rahul Sharma",
+      rollNumber: "CS22B045",
+      roomNumber: "B-304",
+      block: "Ramanujan Bhawan (Block B)",
+      triggerTime: "Past Drill: 15 Sep 2026 11:20 PM",
+      status: "RESOLVED",
+      resolvedBy: "Security Warden (Safety Drill Cleared in 2m 14s)",
+    ),
+  ];
+
+  // -------------------------------------------------------------
+  // 6 Ultra-Smart Hostel Innovations Seed Data
+  // -------------------------------------------------------------
+
+  // 1. AI Stable-Marriage Roommate Quiz Profiles & Gale-Shapley Candidates
+  static const RoommateQuizProfile studentRoommateQuiz = RoommateQuizProfile(
+    rollNumber: "CS22B045",
+    studentName: "Rahul Sharma",
+    branch: "Computer Science & Engineering",
+    sleepCycle: "Night Owl (02:00 AM)",
+    studyEnvironment: "Background Lo-Fi Music",
+    acPreference: "Moderate (24°C)",
+    cleanliness: "Minimalist Clean",
+    interests: ["Competitive Coding", "System Architecture", "Gym / Calisthenics"],
+    compatibilityScore: 96,
+    matchedRoommateRoll: "IT22B019",
+    matchedRoommateName: "Rohan Joshi",
+    assignedRoom: "B-304",
+    isQuizCompleted: true,
+  );
+
+  static final List<RoommateQuizProfile> allRoommateCandidates = [
+    const RoommateQuizProfile(
+      rollNumber: "IT22B019",
+      studentName: "Rohan Joshi",
+      branch: "Information Technology",
+      sleepCycle: "Night Owl (01:30 AM)",
+      studyEnvironment: "Background Lo-Fi Music",
+      acPreference: "Moderate (23°C)",
+      cleanliness: "Minimalist Clean",
+      interests: ["System Architecture", "Open Source", "Gaming"],
+      compatibilityScore: 96,
+      matchedRoommateRoll: "CS22B045",
+      matchedRoommateName: "Rahul Sharma",
+      assignedRoom: "B-304",
+      isQuizCompleted: true,
+    ),
+    const RoommateQuizProfile(
+      rollNumber: "CS22B012",
+      studentName: "Aman Verma",
+      branch: "Computer Science & Engineering",
+      sleepCycle: "Night Owl (02:00 AM)",
+      studyEnvironment: "Pin-Drop Silence",
+      acPreference: "Moderate (24°C)",
+      cleanliness: "Minimalist Clean",
+      interests: ["Competitive Coding", "Chess", "Fitness"],
+      compatibilityScore: 91,
+      matchedRoommateRoll: "CS22B045",
+      matchedRoommateName: "Rahul Sharma",
+      assignedRoom: "B-304",
+      isQuizCompleted: true,
+    ),
+    const RoommateQuizProfile(
+      rollNumber: "EC22B034",
+      studentName: "Devansh Saxena",
+      branch: "Electronics & Communication",
+      sleepCycle: "Early Bird (05:00 AM)",
+      studyEnvironment: "Pin-Drop Silence",
+      acPreference: "Chiller (18°C)",
+      cleanliness: "Relaxed",
+      interests: ["Embedded Systems", "Robotics", "Cricket"],
+      compatibilityScore: 64,
+      isQuizCompleted: true,
+    ),
+    const RoommateQuizProfile(
+      rollNumber: "ME22B008",
+      studentName: "Kunal Mehra",
+      branch: "Mechanical Engineering",
+      sleepCycle: "Early Bird (05:30 AM)",
+      studyEnvironment: "Pin-Drop Silence",
+      acPreference: "Chiller (19°C)",
+      cleanliness: "Relaxed",
+      interests: ["Automobile Racing", "Guitar", "Gym"],
+      compatibilityScore: 58,
+      isQuizCompleted: true,
+    ),
+  ];
+
+  static const RoommateMatchmakerSetting roommateMatchmakerSetting = RoommateMatchmakerSetting(
+    isSelfDiscoveryEnabled: true, // Admin permits students to search & pick directly
+    isAutoAllocationActive: true,
+    totalQuizSubmissions: 240,
+    matchedPairsCount: 112,
+    averageMatchScore: 93.4,
+  );
+
+  // 2. AI Predictive Mess Headcount & Food Waste Minimizer
+  static final List<DiningIntentRecord> initialDiningIntents = [
+    const DiningIntentRecord(
+      id: "INT-2026-001",
+      studentRoll: "CS22B045",
+      studentName: "Rahul Sharma",
+      date: "Today",
+      mealType: "Dinner",
+      intent: "ATTENDING",
+      updatedAt: "Today, 04:15 PM",
+    ),
+    const DiningIntentRecord(
+      id: "INT-2026-002",
+      studentRoll: "IT22B019",
+      studentName: "Rohan Joshi",
+      date: "Today",
+      mealType: "Dinner",
+      intent: "ATTENDING",
+      updatedAt: "Today, 04:30 PM",
+    ),
+    const DiningIntentRecord(
+      id: "INT-2026-003",
+      studentRoll: "CS22B012",
+      studentName: "Aman Verma",
+      date: "Today",
+      mealType: "Dinner",
+      intent: "OUT_PASS_AUTO_SKIPPED",
+      updatedAt: "Auto-synced via Outpass #GP-2026-081",
+    ),
+  ];
+
+  static const MessHeadcountForecast messHeadcountForecast = MessHeadcountForecast(
+    date: "Today (Night Service)",
+    mealType: "Dinner",
+    totalHostellers: 450,
+    expectedDiningCount: 284,
+    gatePassOutCount: 68,
+    voluntarySkippingCount: 48,
+    recommendedRiceKg: 35.0,
+    baselineRiceKg: 50.0,
+    foodSavedKg: 15.0,
+    dailyRupeesSaved: 3720.0,
+    annualProjectedSavings: 680000.0,
+    chefAlertMessage: "Chef Alert: Tonight only 284 students are dining (68 on campus pass out, 48 skipping). Cook 35 kg rice instead of 50 kg baseline. Target savings: ₹3,720 tonight!",
+  );
+
+  // 3. Anti-Ragging Silent Duress Secret Emergency PIN
+  static const SilentDuressAlarm silentDuressAlarm = SilentDuressAlarm(
+    id: "DURESS-SYS-001",
+    studentRoll: "CS22B045",
+    studentName: "Rahul Sharma",
+    roomNumber: "B-304",
+    blockName: "Ramanujan Bhawan (Block B)",
+    secretDuressPin: "9999",
+    isDuressTriggered: false,
+    gpsCoordinates: "Lat: 23.2599, Long: 77.4126 (Ramanujan Bhawan Room B-304)",
+    triggeredAt: "Standby Active",
+    dispatchStatus: "READY",
+  );
+
+  // 4. AI Computer Vision Room Damage & Caution Deposit Audit
+  static final List<RoomAssetInspection> roomAssetInspections = [
+    const RoomAssetInspection(
+      id: "AST-B304-01",
+      roomNumber: "B-304",
+      assetName: "Solid Teak Study Table & Ergonomic Chair",
+      checkInDate: "15 Jul 2024",
+      checkInCondition: "Pristine factory condition, zero scratch, polish intact",
+      checkInSha256Hash: "SHA256:7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
+      checkOutDate: "May 2026 (Upcoming)",
+      checkOutCondition: "Current Scan: Clean, minor normal wear, zero structural defect",
+      damageScore: 0.01,
+      cautionDeduction: 0.0,
+      auditStatus: "VERIFIED_SAFE",
+    ),
+    const RoomAssetInspection(
+      id: "AST-B304-02",
+      roomNumber: "B-304",
+      assetName: "Godrej Dual-Door Steel Almirah (Keylock #B304-K1)",
+      checkInDate: "15 Jul 2024",
+      checkInCondition: "Keylock smooth, dual internal shelves undamaged, zero dent",
+      checkInSha256Hash: "SHA256:4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
+      checkOutDate: "May 2026 (Upcoming)",
+      checkOutCondition: "Current Scan: Both doors functional, lock aligned, zero rust",
+      damageScore: 0.0,
+      cautionDeduction: 0.0,
+      auditStatus: "VERIFIED_SAFE",
+    ),
+    const RoomAssetInspection(
+      id: "AST-B304-03",
+      roomNumber: "B-304",
+      assetName: "Heavy Duty Iron Bed Frame & Orthopedic Mattress",
+      checkInDate: "15 Jul 2024",
+      checkInCondition: "Powder coated iron frame, no squeaks, clean mattress cover",
+      checkInSha256Hash: "SHA256:ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d",
+      checkOutDate: "May 2026 (Upcoming)",
+      checkOutCondition: "Current Scan: Welds intact, zero sag",
+      damageScore: 0.02,
+      cautionDeduction: 0.0,
+      auditStatus: "VERIFIED_SAFE",
+    ),
+    const RoomAssetInspection(
+      id: "AST-B304-04",
+      roomNumber: "B-304",
+      assetName: "Crompton 1200mm High-Speed Ceiling Fan & Modular Switchboard",
+      checkInDate: "15 Jul 2024",
+      checkInCondition: "All 5 regulator speeds working, 3-pin sockets tested",
+      checkInSha256Hash: "SHA256:8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+      checkOutDate: "May 2026 (Upcoming)",
+      checkOutCondition: "Current Scan: Motor quiet, sockets functional",
+      damageScore: 0.0,
+      cautionDeduction: 0.0,
+      auditStatus: "VERIFIED_SAFE",
+    ),
+  ];
+
+  // 5. Green Dorm IoT Energy Quota & Eco-Credits Leaderboard
+  static const GreenDormEnergyCredit greenDormEnergyCredit = GreenDormEnergyCredit(
+    roomNumber: "B-304",
+    monthlyQuotaUnits: 120.0,
+    consumedUnits: 82.4,
+    remainingUnits: 37.6,
+    liveLoadWatts: 340.0,
+    ecoCredits: 450,
+    co2SavedKg: 28.5,
+    wingRank: "Floor 2 (#1 Eco-Champion Wing)",
+    perkReward: "Free Sunday Dinner Dessert & 500Mbps Wi-Fi Priority Unlocked",
+  );
+
+  // 6. Curfew Auto-Extension with Parent WhatsApp 1-Click Consent
+  static final List<CurfewExtensionRequest> initialCurfewExtensions = [
+    const CurfewExtensionRequest(
+      id: "EXT-2026-088",
+      gatePassId: "GP-2026-089",
+      studentRoll: "CS22B045",
+      studentName: "Rahul Sharma",
+      roomNumber: "B-304",
+      originalCurfewTime: "08:30 PM",
+      requestedExtensionMinutes: 45,
+      extendedCurfewTime: "09:15 PM",
+      reason: "Late Lab Coding Hackathon evaluation & MP Nagar traffic jam",
+      parentConsentStatus: "PENDING",
+      wardenApprovalStatus: "AUTO_APPROVED",
+      isFineWaived: true,
+    ),
+  ];
+
+
 
   // Transit Bus Route 4
   static const BusRoute busRoute = BusRoute(
@@ -336,49 +819,182 @@ class CampusDatabase {
     ],
   );
 
-  // Grievance Helpdesk
+  // Grievance Helpdesk — Multi-Role, Thread-Based (UGC 48h SLA)
   static final List<GrievanceTicket> grievances = [
-    const GrievanceTicket(
+    // ── 1. Student → Admin (Academic Lab) with reply thread
+    GrievanceTicket(
       id: "GRV-2026-0419",
       category: "Academic & Lab",
       subject: "PyTorch GPU drivers update request in Lab 3",
-      description: "Machines in Row B need CUDA 12.4 update for Deep Learning practicals.",
+      description: "Machines in Row B need CUDA 12.4 update for Deep Learning practicals. Practical exam is on Oct 10th — urgent.",
       createdAt: "2026-09-22",
-      status: "In Progress",
-      priority: "Medium",
-      remainingSlaHours: 18,
-      assignedOfficer: "Mr. Rajesh Kumar (Lab Admin)",
-    ),
-    const GrievanceTicket(
-      id: "GRV-2026-0390",
-      category: "Hostel Facility",
-      subject: "Wi-Fi access point bandwidth issue on 3rd floor Block B",
-      description: "Signal drops frequently during 8 PM - 11 PM study hours.",
-      createdAt: "2026-09-18",
-      status: "Resolved",
+      status: "Under Review",
       priority: "High",
-      remainingSlaHours: 0,
-      assignedOfficer: "Campus IT Network Cell",
+      remainingSlaHours: 14,
+      assignedOfficer: "Dr. Mohit Donawat (HOD – CSE)",
+      raisedByRole: "student",
+      raisedByName: "Rahul Sharma (CS22B045)",
+      targetRole: "admin",
+      targetName: "Lab Administration Cell",
+      studentRoll: "CS22B045",
+      isEscalated: false,
+      responses: const [
+        GrievanceResponse(
+          id: "RES-001-A",
+          authorRole: "admin",
+          authorName: "Mr. Rajesh Kumar (Lab Admin)",
+          message: "Acknowledged. Verification of CUDA 12.4 compatibility with existing hardware is underway. Estimated update: 3 working days.",
+          timestamp: "2026-09-23 10:15 AM",
+          isOfficialResolution: false,
+        ),
+        GrievanceResponse(
+          id: "RES-001-B",
+          authorRole: "faculty",
+          authorName: "Dr. Mohit Donawat (HOD)",
+          message: "CC'd the IT Cell. Escalated to priority queue given Oct 10 practical exam. Please ensure update completion before Oct 7.",
+          timestamp: "2026-09-24 09:30 AM",
+          isOfficialResolution: false,
+        ),
+      ],
     ),
-    const GrievanceTicket(
+
+    // ── 2. Parent → Admin (Duplicate fee) — Resolved with summary
+    GrievanceTicket(
+      id: "GRV-2026-0390",
+      category: "Fee & Finance",
+      subject: "Duplicate fee deduction from bank account",
+      description: "Amount of ₹45,200 was deducted twice on Sep 15. Transaction refs: TXN-8821A & TXN-8821B. Requesting immediate refund.",
+      createdAt: "2026-09-16",
+      status: "Resolved",
+      priority: "Critical",
+      remainingSlaHours: 0,
+      assignedOfficer: "Ms. Priya Nair (Finance Officer)",
+      raisedByRole: "parent",
+      raisedByName: "Mr. Suresh Sharma (Parent of Rahul)",
+      targetRole: "admin",
+      targetName: "Finance & Accounts Office",
+      studentRoll: "CS22B045",
+      isEscalated: false,
+      resolutionSummary: "Refund of ₹45,200 processed via NEFT on Sep 19. UTR: NEFT2026-99443. Issue caused by payment gateway timeout, resolved with bank coordination.",
+      responses: const [
+        GrievanceResponse(
+          id: "RES-002-A",
+          authorRole: "admin",
+          authorName: "Ms. Priya Nair (Finance Officer)",
+          message: "Reversal request lodged with bank for TXN-8821B. Duplicate transaction confirmed. Refund will process in 3–5 working days.",
+          timestamp: "2026-09-17 11:00 AM",
+          isOfficialResolution: false,
+        ),
+        GrievanceResponse(
+          id: "RES-002-B",
+          authorRole: "admin",
+          authorName: "Ms. Priya Nair (Finance Officer)",
+          message: "Refund of ₹45,200 has been processed via NEFT. UTR: NEFT2026-99443. Please confirm receipt within 48 hours.",
+          timestamp: "2026-09-19 03:45 PM",
+          isOfficialResolution: true,
+        ),
+      ],
+    ),
+
+    // ── 3. Faculty → Admin (Workload — Escalated, SLA critical)
+    GrievanceTicket(
+      id: "GRV-FAC-2026-0031",
+      category: "Faculty & Workload",
+      subject: "Excess teaching load beyond UGC norms (16 hrs/week)",
+      description: "Currently assigned 22 contact hours/week against UGC maximum of 16. Ongoing for 6 weeks. Requesting formal rebalancing and acknowledgement.",
+      createdAt: "2026-09-10",
+      status: "Escalated",
+      priority: "High",
+      remainingSlaHours: 2,
+      assignedOfficer: "Office of Dean & Director (Escalated)",
+      raisedByRole: "faculty",
+      raisedByName: "Dr. Mohit Donawat (HOD – CSE)",
+      targetRole: "admin",
+      targetName: "Office of Dean & Director",
+      isEscalated: true,
+      responses: const [
+        GrievanceResponse(
+          id: "RES-003-A",
+          authorRole: "admin",
+          authorName: "Mr. Shridhar Donawat (Dean)",
+          message: "Received your grievance. Reviewing the current timetable allocation. Academic Affairs committee meeting scheduled Sep 25.",
+          timestamp: "2026-09-12 02:00 PM",
+          isOfficialResolution: false,
+        ),
+        GrievanceResponse(
+          id: "RES-003-B",
+          authorRole: "faculty",
+          authorName: "Dr. Mohit Donawat (HOD – CSE)",
+          message: "SLA deadline approaching. No change has been made. Formally escalating to AICTE Grievance Portal if not resolved by EOD.",
+          timestamp: "2026-09-28 10:00 AM",
+          isOfficialResolution: false,
+        ),
+      ],
+    ),
+
+    // ── 4. Anti-Ragging Statutory (Critical, Resolved)
+    GrievanceTicket(
       id: "GRV-STATUTORY-001",
       category: "Anti-Ragging Statutory Cell",
-      subject: "Zero Tolerance Campus Safety Audit",
-      description: "Mandatory bi-weekly safety patrol and helpline verification.",
+      subject: "Reported incident — Hostel Block C senior harassment",
+      description: "First-year student (Roll: CS24A012) reported verbal harassment by a 3rd-year student on Sep 1, 2026 at 11 PM in Block C corridor.",
       createdAt: "2026-09-01",
       status: "Resolved",
       priority: "Critical",
       remainingSlaHours: 0,
       assignedOfficer: "Dean of Student Welfare & AICTE Liaison",
+      raisedByRole: "student",
+      raisedByName: "Anonymous (CS24A012)",
+      targetRole: "admin",
+      targetName: "Anti-Ragging Statutory Cell",
+      studentRoll: "CS24A012",
+      resolutionSummary: "Formal inquiry conducted. Senior student (CS22B077) issued written warning and placed on probation. CCTV evidence archived. AICTE compliance report filed within 24 hours.",
+      responses: const [
+        GrievanceResponse(
+          id: "RES-004-A",
+          authorRole: "admin",
+          authorName: "Prof. Arvind Sharma (Warden)",
+          message: "CCTV footage of Block C corridor (Sep 1, 10:50–11:15 PM) preserved. Formal inquiry committee formed per UGC Regulations 2009.",
+          timestamp: "2026-09-02 06:30 AM",
+          isOfficialResolution: false,
+        ),
+        GrievanceResponse(
+          id: "RES-004-B",
+          authorRole: "admin",
+          authorName: "Mr. Shridhar Donawat (Dean)",
+          message: "Inquiry complete. Disciplinary action taken. AICTE compliance report filed. This matter is formally closed.",
+          timestamp: "2026-09-03 05:00 PM",
+          isOfficialResolution: true,
+        ),
+      ],
+    ),
+
+    // ── 5. Student → Faculty (Marks re-evaluation — Open)
+    GrievanceTicket(
+      id: "GRV-2026-0455",
+      category: "Academic & Marks",
+      subject: "Mid-term marks re-evaluation — Compiler Design Q4(b)",
+      description: "I attempted Q4(b) correctly (LR(1) parsing steps) but was awarded 0/8 marks. Requesting re-evaluation with answer key reference.",
+      createdAt: "2026-10-01",
+      status: "In Progress",
+      priority: "Medium",
+      remainingSlaHours: 36,
+      assignedOfficer: "Dr. Kavita Rathore (CD Subject Faculty)",
+      raisedByRole: "student",
+      raisedByName: "Rahul Sharma (CS22B045)",
+      targetRole: "faculty",
+      targetName: "Dr. Kavita Rathore",
+      studentRoll: "CS22B045",
+      responses: const [],
     ),
   ];
 
-  // Daily Mess Menu
+  // Daily Mess Menu (Enriched with Calories & Nutrition Index)
   static const Map<String, String> messMenuToday = {
-    "Breakfast (07:30 - 09:00 AM)": "Aloo Paratha, Curd, Poha, Boiled Eggs / Sprouts, Tea & Coffee",
-    "Lunch (12:30 - 02:30 PM)": "Dal Tadka, Shahi Paneer, Jeera Rice, Phulke, Cucumber Salad, Gulab Jamun",
-    "High Tea (05:00 - 06:00 PM)": "Veg Cutlets, Green Chutney, Masala Chai, Biscuits",
-    "Dinner (08:00 - 09:45 PM)": "Mix Veg, Chana Dal, Steamed Rice, Butter Roti, Kheer",
+    "Breakfast (07:30 - 09:00 AM) • 460 kcal • High Protein": "Aloo Paratha, Curd, Poha, Boiled Eggs / Sprouts, Tea & Coffee",
+    "Lunch (12:30 - 02:30 PM) • 680 kcal • Balanced Diet": "Dal Tadka, Shahi Paneer, Jeera Rice, Phulke, Cucumber Salad, Gulab Jamun",
+    "High Tea (05:00 - 06:00 PM) • 240 kcal • Energy Snack": "Veg Cutlets, Green Chutney, Masala Chai, Biscuits",
+    "Dinner (08:00 - 09:45 PM) • 520 kcal • Light & Digestible": "Mix Veg, Chana Dal, Steamed Rice, Butter Roti, Kheer",
   };
 
   // Personalized Adaptive Learning Recommendations

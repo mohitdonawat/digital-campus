@@ -90,6 +90,7 @@ docs/
 ies_ecampus/
 **/ies_ecampus/
 generate_logo.ps1
+*.bat
 ~$*
 **/~$*
 

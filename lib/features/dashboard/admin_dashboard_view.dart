@@ -7,8 +7,11 @@ import '../../providers/campus_provider.dart';
 import '../ai_analytics/early_dropout_screen.dart';
 import '../certificates/digital_certificates_screen.dart';
 import '../helpdesk/helpdesk_screen.dart';
+import '../hostel/hostel_screen.dart';
+import '../hostel/admin_hostel_management_screen.dart';
 import '../attendance/attendance_screen.dart';
-import '../account/professional_account_screen.dart';
+import '../../models/campus_models.dart';
+import '../../core/widgets/glass_card.dart';
 
 /// Ultra-Clean, Executive University Admin Dashboard
 class AdminDashboardView extends StatelessWidget {
@@ -48,7 +51,21 @@ class AdminDashboardView extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            // ── 4. INSTITUTIONAL AUDIT ACTIVITY ───────────────────────────────
+            // ── 4. GRIEVANCE COMMAND CENTER ───────────────────────────────────
+            _buildSectionTitle("GRIEVANCE COMMAND CENTER"),
+            const SizedBox(height: 8),
+            GrievanceSummaryCard(role: UserRole.admin),
+
+            const SizedBox(height: 18),
+
+            // ── 5. SMART HOSTEL & CHIEF WARDEN RADAR ──────────────────────────
+            _buildSectionTitle("HOSTEL OCCUPANCY & CURFEW RADAR"),
+            const SizedBox(height: 8),
+            _buildHostelWardenCommandCenter(context, provider),
+
+            const SizedBox(height: 18),
+
+            // ── 6. INSTITUTIONAL AUDIT ACTIVITY ───────────────────────────────
             _buildSectionTitle("RECENT UNIVERSITY ACTIONS"),
             const SizedBox(height: 8),
             _buildAuditActivityCard(
@@ -396,7 +413,160 @@ class AdminDashboardView extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildHostelWardenCommandCenter(BuildContext context, CampusProvider provider) {
+    final blocks = provider.hostelBlocksOccupancy;
+    final totalCapacity = blocks.fold<int>(0, (sum, b) => sum + b.totalCapacity);
+    final totalOccupied = blocks.fold<int>(0, (sum, b) => sum + b.occupiedBeds);
+    final totalVacant = totalCapacity - totalOccupied;
+    final overdueCount = provider.gatePasses.where((p) => p.isCurfewBreached).length;
+    final pendingMaintenance = provider.hostelMaintenanceTickets.where((t) => t.status != 'Resolved').length;
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminHostelManagementScreen()));
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderLight),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6366F1).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.hotel_rounded, color: Color(0xFF6366F1), size: 20),
+                    ),
+                    const SizedBox(width: 10),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Hostel & Residential Radar",
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                        ),
+                        Text(
+                          "Curfew Compliance • Bed Allocation Matrix",
+                          style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    children: [
+                      Text("Manage", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF475569))),
+                      SizedBox(width: 2),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF475569)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildWardenMetric("Total Beds", "$totalCapacity", const Color(0xFF64748B)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildWardenMetric("Occupied", "$totalOccupied", const Color(0xFF2563EB)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildWardenMetric("Vacant Beds", "$totalVacant", AppColors.success),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildWardenMetric(
+                    "Work Orders",
+                    "$pendingMaintenance",
+                    pendingMaintenance > 0 ? const Color(0xFFF59E0B) : AppColors.success,
+                  ),
+                ),
+              ],
+            ),
+            if (overdueCount > 0) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, size: 14, color: Color(0xFFDC2626)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        "$overdueCount hosteller(s) overdue past 08:30 PM curfew window!",
+                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFFB91C1C)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWardenMetric(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: color)),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
 }
+
 
 class _AdminModule {
   final String title;

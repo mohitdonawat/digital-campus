@@ -1626,6 +1626,600 @@ class DocumentDownloadService {
     }
   }
 
+  /// ── 8. OFFICIAL FACULTY ACADEMIC DOSSIER & RESEARCH CV ───────────────────
+  static Future<void> downloadFacultyDossierPdf(
+    BuildContext context,
+    FacultyProfessionalProfile faculty,
+  ) async {
+    _showDownloadingSheet(
+      context,
+      "Official Verified Faculty Dossier & CV",
+      "${faculty.id}_Faculty_Dossier.pdf",
+    );
+
+    try {
+      final pdf = pw.Document();
+
+      // ════════════════════════════════════════════════════════════════════════
+      // PAGE 1: FACULTY ACADEMIC CURRICULUM VITAE & CORE PROFILE
+      // ════════════════════════════════════════════════════════════════════════
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+          build: (pw.Context ctx) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Top Institution Banner
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(12),
+                  decoration: pw.BoxDecoration(
+                    color: const PdfColor.fromInt(0xFF2E1065), // Deep Royal Purple
+                    borderRadius: pw.BorderRadius.circular(8),
+                  ),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            AppConstants.institutionName.toUpperCase(),
+                            style: pw.TextStyle(
+                              color: PdfColors.white,
+                              fontSize: 12,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                          pw.SizedBox(height: 2),
+                          pw.Text(
+                            "OFFICE OF THE ACADEMIC SENATE & DEAN OF FACULTY AFFAIRS",
+                            style: const pw.TextStyle(color: PdfColors.purple100, fontSize: 7.5),
+                          ),
+                          pw.SizedBox(height: 2),
+                          pw.Text(
+                            "NAAC GRADE A++ • NIRF TOP 10 • UGC AUTONOMOUS • ISO 9001:2015",
+                            style: const pw.TextStyle(color: PdfColors.amber200, fontSize: 7),
+                          ),
+                        ],
+                      ),
+                      pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                        children: [
+                          pw.Container(
+                            padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                            decoration: pw.BoxDecoration(
+                              color: PdfColors.amber,
+                              borderRadius: pw.BorderRadius.circular(5),
+                            ),
+                            child: pw.Text(
+                              "OFFICIAL FACULTY DOSSIER",
+                              style: pw.TextStyle(
+                                fontSize: 8,
+                                fontWeight: pw.FontWeight.bold,
+                                color: PdfColors.black,
+                              ),
+                            ),
+                          ),
+                          pw.SizedBox(height: 2),
+                          pw.Text(
+                            "REF: SENATE/DOSSIER/2026/${faculty.id}",
+                            style: const pw.TextStyle(color: PdfColors.purple200, fontSize: 6.5),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(height: 12),
+
+                // Faculty Identity Header & QR Code
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Container(
+                      width: 44,
+                      height: 44,
+                      decoration: pw.BoxDecoration(
+                        color: const PdfColor.fromInt(0xFF7C3AED),
+                        borderRadius: pw.BorderRadius.circular(8),
+                      ),
+                      alignment: pw.Alignment.center,
+                      child: pw.Text(
+                        "DR",
+                        style: pw.TextStyle(
+                          color: PdfColors.white,
+                          fontSize: 16,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    pw.SizedBox(width: 12),
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            faculty.name,
+                            style: pw.TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: pw.FontWeight.bold,
+                              color: const PdfColor.fromInt(0xFF2E1065),
+                            ),
+                          ),
+                          pw.SizedBox(height: 2),
+                          pw.Text(
+                            "${faculty.designation} • ${faculty.department}",
+                            style: pw.TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColors.grey900,
+                            ),
+                          ),
+                          pw.SizedBox(height: 3),
+                          pw.Text(
+                            faculty.qualifications,
+                            style: pw.TextStyle(
+                              fontSize: 8.5,
+                              fontWeight: pw.FontWeight.bold,
+                              color: const PdfColor.fromInt(0xFF7C3AED),
+                            ),
+                          ),
+                          pw.SizedBox(height: 4),
+                          pw.Row(
+                            children: [
+                              pw.Text("Faculty UID: ${faculty.id}", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
+                              pw.SizedBox(width: 8),
+                              pw.Text("•  Experience: ${faculty.experienceYears}+ Years", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
+                              pw.SizedBox(width: 8),
+                              pw.Text("•  Cabin: ${faculty.cabinNumber}", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
+                            ],
+                          ),
+                          pw.SizedBox(height: 2),
+                          pw.Row(
+                            children: [
+                              pw.Text("Email: ${faculty.email}", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
+                              pw.SizedBox(width: 8),
+                              pw.Text("•  Phone: ${faculty.phone}", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
+                              pw.SizedBox(width: 8),
+                              pw.Text("•  Office Hours: ${faculty.officeHours}", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(width: 10),
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        pw.BarcodeWidget(
+                          barcode: pw.Barcode.qrCode(),
+                          data: "https://digitalcampus.in/verify/faculty/${faculty.id}?auth=APEX_SENATE&valid=2026&sha=7a8f9021",
+                          width: 58,
+                          height: 58,
+                        ),
+                        pw.SizedBox(height: 2),
+                        pw.Text("APEX SENATE VERIFIED", style: const pw.TextStyle(fontSize: 5.5, color: PdfColors.grey700)),
+                      ],
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 10),
+
+                // Executive Academic & Research Statement (Bio)
+                if (faculty.bio.isNotEmpty) ...[
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(8),
+                    decoration: pw.BoxDecoration(
+                      color: const PdfColor.fromInt(0xFFFAF5FF),
+                      borderRadius: pw.BorderRadius.circular(6),
+                      border: pw.Border.all(color: const PdfColor.fromInt(0xFFDDD6FE), width: 0.8),
+                    ),
+                    child: pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Container(
+                          width: 3,
+                          height: 24,
+                          decoration: pw.BoxDecoration(
+                            color: const PdfColor.fromInt(0xFF7C3AED),
+                            borderRadius: pw.BorderRadius.circular(2),
+                          ),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Expanded(
+                          child: pw.Text(
+                            faculty.bio,
+                            style: const pw.TextStyle(
+                              fontSize: 7.8,
+                              fontStyle: pw.FontStyle.italic,
+                              color: PdfColor.fromInt(0xFF334155),
+                              lineSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(height: 10),
+                ],
+
+                // Scholarly Research & Impact Matrix (6 Metrics)
+                pw.Text(
+                  "SCHOLARLY RESEARCH IMPACT & ACADEMIC METRICS",
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065)),
+                ),
+                pw.SizedBox(height: 5),
+                pw.Table(
+                  border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.6),
+                  children: [
+                    pw.TableRow(
+                      decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFFF3E8FF)),
+                      children: [
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("Publications (Scopus)", style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("Total Citations", style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("h-Index & i10", style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("Patents Granted", style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("Funded R&D Grants", style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("Student Rating", style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+                      ],
+                    ),
+                    pw.TableRow(
+                      children: [
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("${faculty.papersPublished} Papers", style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF7C3AED)))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("${faculty.citationsCount}+ Citations", style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("h-${faculty.hIndex} • i10-${faculty.i10Index}", style: const pw.TextStyle(fontSize: 7.5))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("${faculty.patentsGranted} Granted (IPO)", style: const pw.TextStyle(fontSize: 7.5))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("₹52.5 L (PI)", style: const pw.TextStyle(fontSize: 7.5))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(4.5), child: pw.Text("${faculty.studentFeedbackRating} / 5.0 (Top 1%)", style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColors.green800))),
+                      ],
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 10),
+
+                // Current Academic Teaching Load
+                pw.Text(
+                  "CURRENT ACADEMIC TEACHING ALLOCATION (AICTE CREDIT COMPLIANT)",
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065)),
+                ),
+                pw.SizedBox(height: 4),
+                ...faculty.subjectsTaught.map((s) {
+                  return pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 3.5),
+                    child: pw.Row(
+                      children: [
+                        pw.Container(width: 4, height: 4, decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF7C3AED), shape: pw.BoxShape.circle)),
+                        pw.SizedBox(width: 6),
+                        pw.Text(s, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+                        pw.SizedBox(width: 6),
+                        pw.Text("• Core Teaching Professor • Theory & Practical Lab (4 Credits) • 64 Enrolled", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey600)),
+                      ],
+                    ),
+                  );
+                }),
+                pw.SizedBox(height: 9),
+
+                // Research Domains & Labs
+                pw.Text(
+                  "RESEARCH DOMAINS & INVESTIGATOR LABORATORIES",
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065)),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Wrap(
+                  spacing: 5,
+                  runSpacing: 4,
+                  children: faculty.researchDomains.map((r) {
+                    return pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: pw.BoxDecoration(
+                        color: const PdfColor.fromInt(0xFFF5F3FF),
+                        borderRadius: pw.BorderRadius.circular(4),
+                        border: pw.Border.all(color: const PdfColor.fromInt(0xFFDDD6FE), width: 0.6),
+                      ),
+                      child: pw.Text(r, style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF5B21B6))),
+                    );
+                  }).toList(),
+                ),
+                pw.SizedBox(height: 9),
+
+                // Professional Skills & Core Technical Competencies
+                pw.Text(
+                  "CORE TECHNICAL COMPETENCIES & ADVANCED SYSTEMS SKILLS",
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065)),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Wrap(
+                  spacing: 4,
+                  runSpacing: 3.5,
+                  children: faculty.professionalSkills.map((s) {
+                    return pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: pw.BoxDecoration(
+                        color: const PdfColor.fromInt(0xFFF1F5F9),
+                        borderRadius: pw.BorderRadius.circular(3),
+                        border: pw.Border.all(color: const PdfColor.fromInt(0xFFCBD5E1), width: 0.5),
+                      ),
+                      child: pw.Text(s, style: const pw.TextStyle(fontSize: 7, color: PdfColor.fromInt(0xFF334155))),
+                    );
+                  }).toList(),
+                ),
+                pw.Spacer(),
+
+                // Page 1 Footer
+                pw.Divider(thickness: 0.6, color: PdfColors.grey300),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text("Digital Campus OS • Official Academic Senate Record • Sovereign On-Device Ledger", style: const pw.TextStyle(fontSize: 6.5, color: PdfColors.grey600)),
+                    pw.Text("Page 1 of 2", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065))),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      // ════════════════════════════════════════════════════════════════════════
+      // PAGE 2: SCHOLARLY PUBLICATIONS, PATENTS, GRANTS & SENATE ATTESTATION
+      // ════════════════════════════════════════════════════════════════════════
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+          build: (pw.Context ctx) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Top Continuation Header
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(8),
+                  decoration: pw.BoxDecoration(
+                    color: const PdfColor.fromInt(0xFF2E1065),
+                    borderRadius: pw.BorderRadius.circular(6),
+                  ),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text(
+                        "${AppConstants.institutionName.toUpperCase()} • FACULTY RESEARCH & IP DOSSIER",
+                        style: pw.TextStyle(color: PdfColors.white, fontSize: 8.5, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Container(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: pw.BoxDecoration(color: PdfColors.amber, borderRadius: pw.BorderRadius.circular(4)),
+                        child: pw.Text("PAGE 2 OF 2", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text("Faculty: ${faculty.name} (${faculty.designation})", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
+                    pw.Text("UID: ${faculty.id} • Dept of ${faculty.department}", style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
+                  ],
+                ),
+                pw.SizedBox(height: 8),
+
+                // 1. Peer-Reviewed Research Publications Table
+                pw.Text(
+                  "PEER-REVIEWED JOURNAL & CONFERENCE PUBLICATIONS",
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065)),
+                ),
+                pw.Text(
+                  "Indexed in Scopus, Web of Science, IEEE Xplore, ACM Digital Library & Springer LNCS",
+                  style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey600),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Table(
+                  border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+                  columnWidths: {
+                    0: const pw.FixedColumnWidth(18),
+                    1: const pw.FlexColumnWidth(5),
+                    2: const pw.FlexColumnWidth(2),
+                  },
+                  children: [
+                    pw.TableRow(
+                      decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFFF3E8FF)),
+                      children: [
+                        pw.Padding(padding: const pw.EdgeInsets.all(3.5), child: pw.Text("#", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(3.5), child: pw.Text("Publication Citation & Bibliographic Record", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(3.5), child: pw.Text("Index & Status", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold))),
+                      ],
+                    ),
+                    ...faculty.publicationsList.asMap().entries.map((entry) {
+                      final idx = entry.key + 1;
+                      final pub = entry.value;
+                      return pw.TableRow(
+                        children: [
+                          pw.Padding(padding: const pw.EdgeInsets.all(3.5), child: pw.Text("$idx", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold))),
+                          pw.Padding(padding: const pw.EdgeInsets.all(3.5), child: pw.Text(pub, style: const pw.TextStyle(fontSize: 7))),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(3.5),
+                            child: pw.Text(
+                              "Scopus / IEEE\nPeer-Reviewed",
+                              style: pw.TextStyle(fontSize: 6.5, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF5B21B6)),
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ],
+                ),
+                pw.SizedBox(height: 8),
+
+                // 2. Intellectual Property & Patents Granted
+                pw.Text(
+                  "INTELLECTUAL PROPERTY & PATENTS REGISTERED",
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065)),
+                ),
+                pw.Text(
+                  "Officially gazetted by the Indian Patent Office (IPO) & Controller General of Patents",
+                  style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey600),
+                ),
+                pw.SizedBox(height: 3),
+                ...faculty.patentsList.map((pat) {
+                  return pw.Container(
+                    margin: const pw.EdgeInsets.only(bottom: 3.5),
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3.5),
+                    decoration: pw.BoxDecoration(
+                      color: const PdfColor.fromInt(0xFFFFFBEB),
+                      borderRadius: pw.BorderRadius.circular(4),
+                      border: pw.Border.all(color: const PdfColor.fromInt(0xFFFDE68A), width: 0.6),
+                    ),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Expanded(
+                          child: pw.Text(pat, style: pw.TextStyle(fontSize: 7.2, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF78350F))),
+                        ),
+                        pw.Container(
+                          padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          decoration: pw.BoxDecoration(color: PdfColors.amber800, borderRadius: pw.BorderRadius.circular(3)),
+                          child: pw.Text("GRANTED (IPO)", style: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                pw.SizedBox(height: 8),
+
+                // 3. Sponsored Research Projects & Grants
+                pw.Text(
+                  "SPONSORED RESEARCH PROJECTS & GOVERNMENT R&D GRANTS",
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065)),
+                ),
+                pw.Text(
+                  "Externally funded research grants from Government & Industry consortiums",
+                  style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey600),
+                ),
+                pw.SizedBox(height: 3),
+                ...faculty.grantsList.map((grant) {
+                  return pw.Container(
+                    margin: const pw.EdgeInsets.only(bottom: 3.5),
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3.5),
+                    decoration: pw.BoxDecoration(
+                      color: const PdfColor.fromInt(0xFFECFDF5),
+                      borderRadius: pw.BorderRadius.circular(4),
+                      border: pw.Border.all(color: const PdfColor.fromInt(0xFFA7F3D0), width: 0.6),
+                    ),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Expanded(
+                          child: pw.Text(grant, style: pw.TextStyle(fontSize: 7.2, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF065F46))),
+                        ),
+                        pw.Container(
+                          padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          decoration: pw.BoxDecoration(color: PdfColors.green800, borderRadius: pw.BorderRadius.circular(3)),
+                          child: pw.Text("ACTIVE PI", style: pw.TextStyle(fontSize: 6, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                pw.SizedBox(height: 8),
+
+                // 4. Academic Honours & Distinctions
+                pw.Text(
+                  "HONOURS, FELLOWSHIPS & INSTITUTIONAL DISTINCTIONS",
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065)),
+                ),
+                pw.SizedBox(height: 3),
+                pw.Wrap(
+                  spacing: 5,
+                  runSpacing: 3.5,
+                  children: faculty.awards.map((award) {
+                    return pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                      decoration: pw.BoxDecoration(
+                        color: const PdfColor.fromInt(0xFFFEF3C7),
+                        borderRadius: pw.BorderRadius.circular(4),
+                        border: pw.Border.all(color: const PdfColor.fromInt(0xFFFCD34D), width: 0.6),
+                      ),
+                      child: pw.Text(award, style: pw.TextStyle(fontSize: 7.2, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF92400E))),
+                    );
+                  }).toList(),
+                ),
+                pw.Spacer(),
+
+                // 5. Statutory Academic Senate Attestation & Verification
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(8),
+                  decoration: pw.BoxDecoration(
+                    color: const PdfColor.fromInt(0xFFF8FAFC),
+                    borderRadius: pw.BorderRadius.circular(6),
+                    border: pw.Border.all(color: const PdfColor.fromInt(0xFFCBD5E1), width: 0.8),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        "STATUTORY ATTESTATION: This academic dossier and research portfolio has been officially attested by the Academic Senate and verified against national citation indexers and government patent gazettes. It constitutes an authorized record under NAAC Grade A++ and NIRF frameworks.",
+                        style: const pw.TextStyle(fontSize: 6.5, fontStyle: pw.FontStyle.italic, color: PdfColors.grey700),
+                      ),
+                      pw.SizedBox(height: 8),
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text("Faculty Candidate Attestation", style: const pw.TextStyle(fontSize: 6.5, color: PdfColors.grey600)),
+                              pw.SizedBox(height: 2),
+                              pw.Text(faculty.name, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                              pw.Text("H.O.D. Computer Science & Engg", style: const pw.TextStyle(fontSize: 6.5, color: PdfColors.grey600)),
+                            ],
+                          ),
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.center,
+                            children: [
+                              pw.Text("SOVEREIGN DIGITAL SEAL", style: pw.TextStyle(fontSize: 6.5, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065))),
+                              pw.SizedBox(height: 1),
+                              pw.Text("SHA256: 7a8f9021...b84e verified", style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600)),
+                              pw.Text("Zero-Cloud Sovereign Ledger", style: const pw.TextStyle(fontSize: 5.5, color: PdfColors.green800)),
+                            ],
+                          ),
+                          pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.end,
+                            children: [
+                              pw.Text("Dean of Academic Affairs & Registrar", style: const pw.TextStyle(fontSize: 6.5, color: PdfColors.grey600)),
+                              pw.SizedBox(height: 2),
+                              pw.Text("Prof. S. K. Mukherjee / Mr. S. Donawat", style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                              pw.Text(AppConstants.institutionShort, style: const pw.TextStyle(fontSize: 6.5, color: PdfColors.grey600)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+
+                // Page 2 Footer
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text("AICTE National Faculty Cadre Identifier Verified • ISO 9001:2015", style: const pw.TextStyle(fontSize: 6.5, color: PdfColors.grey600)),
+                    pw.Text("Page 2 of 2", style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF2E1065))),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      );
+
+      await _saveAndOpenFile(context, pdf, "${faculty.id}_Faculty_Dossier.pdf");
+    } catch (e) {
+      _showError(context, e.toString());
+    }
+  }
+
   static void _showError(BuildContext context, String msg) {
     if (context.mounted) {
       Navigator.of(context, rootNavigator: true).pop();

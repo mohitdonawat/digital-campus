@@ -5,6 +5,7 @@ import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/custom_chip.dart';
 import '../../core/widgets/stat_card.dart';
 import '../../providers/campus_provider.dart';
+import '../../core/services/whatsapp_alert_service.dart';
 
 class EarlyDropoutScreen extends StatelessWidget {
   const EarlyDropoutScreen({super.key});
@@ -184,6 +185,133 @@ class EarlyDropoutScreen extends StatelessWidget {
 
             const SizedBox(height: 18),
 
+            // ── Live Defaulter Students Radar Roster ──────────────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 16),
+                    SizedBox(width: 6),
+                    Text(
+                      "CRITICAL ATTENDANCE DEFAULTERS (<75%)",
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                        color: AppColors.error,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF25D366).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.chat_rounded, color: Color(0xFF25D366), size: 12),
+                      SizedBox(width: 4),
+                      Text(
+                        "WhatsApp Hotline",
+                        style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: Color(0xFF15803D)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            ...provider.classAttendanceRecords
+                .where((s) => s.attendancePercentage < 75.0)
+                .map((student) {
+              final deficit = (((0.75 * student.totalClasses) - student.attendedClasses) / 0.25).ceil().clamp(1, 40);
+              return GlassCard(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                borderColor: AppColors.error.withOpacity(0.4),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 17,
+                          backgroundColor: AppColors.error.withOpacity(0.12),
+                          child: Text(
+                            student.name.isNotEmpty ? student.name[0] : "S",
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.error),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                student.name,
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                              ),
+                              Text(
+                                "${student.rollNumber} • ${student.branch} Sem ${student.semester} (${student.section})",
+                                style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.error,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            "${student.attendancePercentage}%",
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Attended: ${student.attendedClasses}/${student.totalClasses} • Shortage: $deficit classes",
+                            style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            HapticFeedback.mediumImpact();
+                            WhatsAppAlertService.showDispatchBottomSheet(
+                              context: context,
+                              student: student,
+                              facultyName: "Dr. Mohit Donawat (HOD)",
+                            );
+                          },
+                          icon: const Icon(Icons.chat_rounded, size: 14, color: Colors.white),
+                          label: const Text("WhatsApp Notice", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF25D366),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+
+            const SizedBox(height: 18),
+
             // Automated Counselor Intervention Actions
             const Text(
               "AUTOMATED COUNSELOR INTERVENTIONS",
@@ -197,6 +325,7 @@ class EarlyDropoutScreen extends StatelessWidget {
             const SizedBox(height: 10),
 
             ...risk.recommendedInterventions.map((intervention) {
+              final isWhatsAppAction = intervention.toLowerCase().contains("whatsapp");
               return GlassCard(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(14),
@@ -205,10 +334,16 @@ class EarlyDropoutScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.15),
+                        color: isWhatsAppAction
+                            ? const Color(0xFF25D366).withOpacity(0.15)
+                            : AppColors.primary.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.psychology_alt_rounded, color: AppColors.accent, size: 18),
+                      child: Icon(
+                        isWhatsAppAction ? Icons.chat_rounded : Icons.psychology_alt_rounded,
+                        color: isWhatsAppAction ? const Color(0xFF25D366) : AppColors.accent,
+                        size: 18,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -220,28 +355,42 @@ class EarlyDropoutScreen extends StatelessWidget {
                             style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.textDark),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            "Ready to execute via 1-tap automated trigger",
-                            style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                          Text(
+                            isWhatsAppAction
+                                ? "Formats AICTE detention statutory alert for parents"
+                                : "Ready to execute via 1-tap automated trigger",
+                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                           ),
                         ],
                       ),
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("Automated trigger dispatched: $intervention"),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
+                        if (isWhatsAppAction) {
+                          final defaulters = provider.classAttendanceRecords.where((s) => s.attendancePercentage < 75.0).toList();
+                          if (defaulters.isNotEmpty) {
+                            WhatsAppAlertService.showDispatchBottomSheet(
+                              context: context,
+                              student: defaulters.first,
+                              facultyName: "Dr. Mohit Donawat",
+                            );
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Automated trigger dispatched: $intervention"),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: isWhatsAppAction ? const Color(0xFF25D366) : AppColors.primary,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                       ),
-                      child: const Text("Deploy"),
+                      child: Text(isWhatsAppAction ? "Dispatch" : "Deploy"),
                     ),
                   ],
                 ),

@@ -1635,12 +1635,12 @@ class _StudentLifecycleScreenState extends State<StudentLifecycleScreen> {
   // Faculty Dossier Card
   Widget _buildFacultyDossier(FacultyProfessionalProfile faculty) {
     final items = [
-      {"icon": Icons.school_rounded, "title": "Academic Rank", "val": "Associate Professor & HOD CSE"},
-      {"icon": Icons.assignment_rounded, "title": "Courses Handled", "val": "Compiler Design (CS-601), Machine Learning (CS-602)"},
-      {"icon": Icons.group_rounded, "title": "Active Cohort", "val": "B.Tech CSE 2022-2026 (Sem 6 • 68 Students)"},
+      {"icon": Icons.school_rounded, "title": "Academic Rank", "val": faculty.designation},
+      {"icon": Icons.assignment_rounded, "title": "Courses Handled", "val": faculty.subjectsTaught.isNotEmpty ? faculty.subjectsTaught.join(", ") : "Operating Systems & AI"},
+      {"icon": Icons.psychology_rounded, "title": "Professional Skills", "val": faculty.professionalSkills.isNotEmpty ? faculty.professionalSkills.join(" • ") : "Edge AI, Compilers, PyTorch"},
       {"icon": Icons.verified_user_rounded, "title": "Statutory Duty", "val": "Semester Course Registration Verification Officer"},
-      {"icon": Icons.memory_rounded, "title": "Advanced Lab Access", "val": "GPU High Performance Distributed Lab 3"},
-      {"icon": Icons.access_time_rounded, "title": "Office Hours", "val": "Mon–Fri: 02:00 PM – 04:30 PM (Cabin A-204)"},
+      {"icon": Icons.article_rounded, "title": "Scholarly Impact", "val": "${faculty.papersPublished} Papers Published • ${faculty.citationsCount} Citations • ${faculty.patentsGranted} Patents"},
+      {"icon": Icons.access_time_rounded, "title": "Office & Hours", "val": "${faculty.cabinNumber} (${faculty.officeHours})"},
     ];
 
     return Container(

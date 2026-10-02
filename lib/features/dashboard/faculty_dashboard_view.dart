@@ -4,13 +4,18 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/campus_models.dart';
+import '../../core/widgets/glass_card.dart';
 import '../../providers/campus_provider.dart';
 import '../ai_analytics/early_dropout_screen.dart';
 import '../timetable/timetable_screen.dart';
 import '../attendance/attendance_screen.dart';
+import '../attendance/dynamic_attendance_qr_modal.dart';
 import '../helpdesk/helpdesk_screen.dart';
 import '../account/professional_account_screen.dart';
 import '../registration/faculty_registration_desk_screen.dart';
+import '../faculty/on_screen_grading_screen.dart';
+import '../faculty/faculty_edit_dossier_screen.dart';
+import '../../core/services/whatsapp_alert_service.dart';
 
 /// Ultra-Clean, Uncluttered Faculty / Teacher Dashboard
 class FacultyDashboardView extends StatelessWidget {
@@ -42,6 +47,11 @@ class FacultyDashboardView extends StatelessWidget {
             // ── 🎓 REGISTRATION VERIFICATION DESK BANNER ─────────────────────
             _buildRegistrationDeskBanner(context, pendingRegs.length),
 
+            const SizedBox(height: 12),
+
+            // ── ✍️ AI ANSWER SHEET GRADER (OSES) BANNER ───────────────────────
+            _buildOSESBanner(context),
+
             const SizedBox(height: 14),
 
             // ── 2. THREE KEY STATS ────────────────────────────────────────────
@@ -63,10 +73,17 @@ class FacultyDashboardView extends StatelessWidget {
 
             const SizedBox(height: 18),
 
-            // ── 5. AT-RISK RADAR HIGHLIGHT ────────────────────────────────────
+            // ── 5. GRIEVANCE INBOX ────────────────────────────────────────────
+            _buildSectionTitle("GRIEVANCE INBOX"),
+            const SizedBox(height: 8),
+            GrievanceSummaryCard(role: UserRole.faculty),
+
+            const SizedBox(height: 18),
+
+            // ── 6. AT-RISK RADAR HIGHLIGHT ────────────────────────────────────
             _buildSectionTitle("AT-RISK STUDENT INTERVENTION"),
             const SizedBox(height: 8),
-            _buildAtRiskHighlightCard(context),
+            _buildAtRiskHighlightCard(context, provider),
 
             const SizedBox(height: 24),
           ],
@@ -150,6 +167,16 @@ class FacultyDashboardView extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FacultyEditDossierScreen()),
+              );
+            },
+            icon: const Icon(Icons.edit_note_rounded, size: 22, color: Color(0xFF7C3AED)),
+            tooltip: "Build & Edit Faculty Dossier",
           ),
           IconButton(
             onPressed: () {
@@ -324,16 +351,16 @@ class FacultyDashboardView extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    HapticFeedback.mediumImpact();
-                    provider.simulateAttendanceCheckIn("CS-601");
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Dynamic Anti-Proxy QR Active! Student check-ins synced."),
-                        backgroundColor: AppColors.success,
-                      ),
+                    HapticFeedback.heavyImpact();
+                    DynamicAttendanceQrModal.show(
+                      context,
+                      subjectCode: "CS-601",
+                      subjectName: "Operating Systems & System Software",
+                      room: "LH-302 (Smart Hall)",
+                      isFaculty: true,
                     );
                   },
-                  icon: const Icon(Icons.qr_code_rounded, size: 16),
+                  icon: const Icon(Icons.qr_code_2_rounded, size: 16),
                   label: const Text("Launch Dynamic QR"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
@@ -429,9 +456,97 @@ class FacultyDashboardView extends StatelessWidget {
     );
   }
 
+  // ── AI Answer Sheet Grader (OSES) Banner ──────────────────────────────────
+  Widget _buildOSESBanner(BuildContext context) {
+    return InkWell(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OnScreenGradingScreen())),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF4338CA), Color(0xFF6366F1)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4338CA).withOpacity(0.22),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        "AI Answer Sheet Grader (OSES)",
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(width: 6),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF10B981),
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
+                        child: Text(
+                          "SOVEREIGN AI",
+                          style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    "3 exam copies ready • SymPy Math prover + Red Pen Overlay",
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: Color(0xFFE0E7FF),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── 4. Quick Faculty Tools ──────────────────────────────────────────────────
   Widget _buildQuickFacultyGrid(BuildContext context) {
     final tools = [
+      _FacultyTool("AI Grader (OSES)", Icons.draw_rounded, const Color(0xFF7C3AED), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const OnScreenGradingScreen()));
+      }),
       _FacultyTool("Registration Desk", Icons.assignment_turned_in_rounded, const Color(0xFF6366F1), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const FacultyRegistrationDeskScreen()));
       }),
@@ -443,6 +558,9 @@ class FacultyDashboardView extends StatelessWidget {
       }),
       _FacultyTool("Dropout Radar", Icons.analytics_rounded, const Color(0xFFD97706), () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const EarlyDropoutScreen()));
+      }),
+      _FacultyTool("Faculty Dossier", Icons.badge_rounded, const Color(0xFF0284C7), () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfessionalAccountScreen()));
       }),
     ];
 
@@ -495,14 +613,47 @@ class FacultyDashboardView extends StatelessWidget {
     );
   }
 
-  // ── 5. At-Risk Student Highlight ────────────────────────────────────────────
-  Widget _buildAtRiskHighlightCard(BuildContext context) {
+  // ── 5. At-Risk Student Highlight (100% Dynamic Database Driven) ────────────
+  Widget _buildAtRiskHighlightCard(BuildContext context, CampusProvider provider) {
+    final defaulters = provider.classAttendanceRecords.where((s) => s.attendancePercentage < 75.0).toList();
+    final topDefaulter = defaulters.isNotEmpty ? defaulters.first : null;
+
+    if (topDefaulter == null) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0FDF4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFBBF7D0)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 20),
+            SizedBox(width: 10),
+            Text(
+              "Zero Attendance Defaulters! All students above 75%.",
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF166534)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final deficit = (((0.75 * topDefaulter.totalClasses) - topDefaulter.attendedClasses) / 0.25).ceil().clamp(1, 40);
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.error.withOpacity(0.3), width: 1.0),
+        border: Border.all(color: AppColors.error.withOpacity(0.35), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.error.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -510,63 +661,77 @@ class FacultyDashboardView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Pooja Deshmukh (CS22B018)",
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark),
+              Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    "${topDefaulter.name} (${topDefaulter.rollNumber})",
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                  ),
+                ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.1),
+                  color: AppColors.error.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  "58.4% Attendance",
-                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.error),
+                child: Text(
+                  "${topDefaulter.attendancePercentage}% Attendance",
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.error),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          const Text(
-            "Missed 6 consecutive classes • Academic intervention recommended",
-            style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+          const SizedBox(height: 5),
+          Text(
+            "Attended ${topDefaulter.attendedClasses}/${topDefaulter.totalClasses} classes • Deficit: $deficit lectures to reach mandatory 75% AICTE rule",
+            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              // Real WhatsApp Alert Dispatch Button
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF25D366),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    WhatsAppAlertService.showDispatchBottomSheet(
+                      context: context,
+                      student: topDefaulter,
+                      facultyName: "Dr. Mohit Donawat",
+                    );
+                  },
+                  icon: const Icon(Icons.chat_rounded, size: 15, color: Colors.white),
+                  label: const Text(
+                    "WhatsApp Parent Alert",
+                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                  ),
                 ),
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Counseling session booked with Academic Mentor."),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14),
-                label: const Text("Intervene", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
               ),
               const SizedBox(width: 8),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.borderLight),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const EarlyDropoutScreen()));
                 },
-                icon: const Icon(Icons.analytics_rounded, size: 14, color: AppColors.textMuted),
-                label: const Text("Full Radar", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+                icon: const Icon(Icons.radar_rounded, size: 15, color: Color(0xFFD97706)),
+                label: Text(
+                  "Radar (${defaulters.length})",
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                ),
               ),
             ],
           ),

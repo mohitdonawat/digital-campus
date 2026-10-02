@@ -113,6 +113,128 @@ def init_database():
     );
     """)
 
+    # 7. Institutional On-Screen Exam Evaluations & Gradebook Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS exam_evaluations (
+        id TEXT PRIMARY KEY,
+        subject_code TEXT NOT NULL,
+        exam_id TEXT NOT NULL,
+        student_roll TEXT NOT NULL,
+        student_name TEXT NOT NULL,
+        question_id TEXT NOT NULL,
+        awarded_marks REAL NOT NULL,
+        max_marks REAL NOT NULL,
+        confidence_score REAL NOT NULL,
+        steps_json TEXT NOT NULL,
+        annotations_json TEXT NOT NULL,
+        teacher_remarks TEXT,
+        sha256_hash TEXT NOT NULL,
+        evaluator_name TEXT NOT NULL,
+        evaluated_at TEXT NOT NULL
+    );
+    """)
+
+    # 8. Hostel Blocks Occupancy Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS hostel_blocks (
+        block_id TEXT PRIMARY KEY,
+        block_name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        total_capacity INTEGER NOT NULL,
+        occupied_beds INTEGER NOT NULL,
+        vacant_beds INTEGER NOT NULL,
+        warden_name TEXT NOT NULL,
+        warden_phone TEXT NOT NULL
+    );
+    """)
+
+    # 9. Hostel Gate Passes Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS hostel_gatepasses (
+        id TEXT PRIMARY KEY,
+        student_name TEXT NOT NULL,
+        roll_number TEXT NOT NULL,
+        reason TEXT NOT NULL,
+        destination TEXT NOT NULL,
+        out_time TEXT NOT NULL,
+        expected_in TEXT NOT NULL,
+        status TEXT NOT NULL,
+        approved_by TEXT NOT NULL,
+        parent_phone TEXT NOT NULL,
+        is_curfew_breached INTEGER NOT NULL DEFAULT 0
+    );
+    """)
+
+    # 10. Hostel Room Maintenance Tickets Table (24h SLA)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS hostel_maintenance (
+        id TEXT PRIMARY KEY,
+        room_number TEXT NOT NULL,
+        student_name TEXT NOT NULL,
+        roll_number TEXT NOT NULL,
+        category TEXT NOT NULL,
+        description TEXT NOT NULL,
+        urgency TEXT NOT NULL,
+        status TEXT NOT NULL,
+        assigned_staff TEXT NOT NULL,
+        reported_at TEXT NOT NULL,
+        resolved_at TEXT
+    );
+    """)
+
+    # 11. Mess Nutrition & Student Meal Feedback Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS mess_ratings (
+        id TEXT PRIMARY KEY,
+        meal_type TEXT NOT NULL,
+        rating INTEGER NOT NULL,
+        comment TEXT NOT NULL,
+        timestamp TEXT NOT NULL,
+        student_roll TEXT NOT NULL
+    );
+    """)
+
+    # Seed hostel blocks if empty
+    cursor.execute("SELECT COUNT(*) FROM hostel_blocks")
+    if cursor.fetchone()[0] == 0:
+        blocks_data = [
+            ("BLK-A", "Aryabhatta Bhawan (Senior Boys)", "Boys", 150, 142, 8, "Dr. K.P. Singh", "+91 94250 11990"),
+            ("BLK-B", "Ramanujan Bhawan (Junior Boys)", "Boys", 150, 138, 12, "Prof. Arvind Sharma", "+91 98930 44556"),
+            ("BLK-C", "Gargi Bhawan (Girls Wing)", "Girls", 150, 132, 18, "Dr. Pratibha Mishra", "+91 98261 77334"),
+        ]
+        cursor.executemany("INSERT INTO hostel_blocks VALUES (?, ?, ?, ?, ?, ?, ?, ?);", blocks_data)
+
+    # Seed hostel gate passes if empty
+    cursor.execute("SELECT COUNT(*) FROM hostel_gatepasses")
+    if cursor.fetchone()[0] == 0:
+        passes_data = [
+            ("GP-2026-9022", "Vikas Mehra", "CS22B052", "Exam Book Purchase", "MP Nagar Zone 2", "2026-10-02 04:00 PM", "2026-10-02 08:00 PM", "Pending", "Awaiting Warden Signature", "+91 98270 33900", 0),
+            ("GP-2026-8910", "Aditya Kulshreshtha", "CS22B099", "Project Discussion", "DB City Tech Hub", "2026-10-02 03:30 PM", "2026-10-02 08:30 PM", "Out of Campus", "Prof. Arvind Sharma", "+91 94251 77889", 1),
+            ("GP-2026-8841", "Rahul Sharma", "CS22B045", "Weekend Family Visit", "Indore (Home)", "2026-09-26 05:00 PM", "2026-09-28 08:00 AM", "Approved", "Prof. Arvind Sharma", "+91 94250 88991", 0),
+        ]
+        cursor.executemany("INSERT INTO hostel_gatepasses VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", passes_data)
+
+    # Seed maintenance tickets if empty
+    cursor.execute("SELECT COUNT(*) FROM hostel_maintenance")
+    if cursor.fetchone()[0] == 0:
+        tickets_data = [
+            ("HMT-2026-081", "B-304", "Rahul Sharma", "CS22B045", "Electrical", "Ceiling fan running at regulator speed 1", "Normal", "Assigned", "Ramesh Sharma (Electrician)", "Today, 10:30 AM", None),
+            ("HMT-2026-068", "B-302", "Vikas Mehra", "CS22B052", "Plumbing", "Washroom tap continuous dripping", "Critical", "Reported", "Pending Assignment", "Today, 01:00 PM", None),
+            ("HMT-2026-074", "B-304", "Aman Verma", "CS22B019", "Wi-Fi / LAN", "LAN socket loose connection", "Normal", "Resolved", "Sunil IT Cell", "Yesterday, 02:15 PM", "Yesterday, 06:30 PM"),
+        ]
+        cursor.executemany("INSERT INTO hostel_maintenance VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", tickets_data)
+
+    # Seed mess ratings if empty
+    cursor.execute("SELECT COUNT(*) FROM mess_ratings")
+    if cursor.fetchone()[0] == 0:
+        mess_data = [
+            ("MF-01", "Breakfast", 4, "Aloo Paratha & Curd fresh and hot", "Today 08:45 AM", "CS22B045"),
+            ("MF-02", "Lunch", 5, "Paneer Butter Masala served fresh", "Today 01:30 PM", "CS22B045"),
+            ("MF-03", "High Tea", 4, "Crispy Veg Cutlets with Chai", "Today 05:20 PM", "CS22B019"),
+            ("MF-04", "Dinner", 5, "Mix Veg and Kheer excellent", "Today 08:40 PM", "CS22B052"),
+        ]
+        cursor.executemany("INSERT INTO mess_ratings VALUES (?, ?, ?, ?, ?, ?);", mess_data)
+
     # Seed initial student record if empty
     cursor.execute("SELECT COUNT(*) FROM students")
     if cursor.fetchone()[0] == 0:
